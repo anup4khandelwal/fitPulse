@@ -72,6 +72,14 @@ npm run mcp:playwright
 
 MCP config is also included at `.mcp.json`.
 
+## Ralph + Codex Integration
+
+Automated task-loop scaffold is included:
+
+- Workflow: `.github/workflows/ralph-codex.yml`
+- Docs: `docs/ralph-codex.md`
+- Local wrappers: `scripts/agent/run-ralph.sh`, `scripts/agent/run-codex.sh`
+
 ## Environment Variables
 
 Never commit real secrets. Use your own values locally:
