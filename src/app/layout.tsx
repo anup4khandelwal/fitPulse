@@ -16,8 +16,23 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "Fitbit Sense Health Dashboard",
-  description: "Personal Fitbit dashboard with calendar progress, day details, and summaries.",
+  metadataBase: new URL("https://github.com/anup4khandelwal/fitPulse"),
+  title: "fitPulse | Fitbit Health Dashboard",
+  description: "Open-source Fitbit dashboard for recovery, sleep, heart zones, and coaching insights.",
+  openGraph: {
+    title: "fitPulse | Fitbit Health Dashboard",
+    description: "Open-source Fitbit dashboard for recovery, sleep, heart zones, and coaching insights.",
+    url: "https://github.com/anup4khandelwal/fitPulse",
+    siteName: "fitPulse",
+    images: ["/opengraph-image"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "fitPulse | Fitbit Health Dashboard",
+    description: "Recovery, sleep, Zone 2, and coaching signals from Fitbit data.",
+    images: ["/opengraph-image"],
+  },
 };
 
 export default function RootLayout({

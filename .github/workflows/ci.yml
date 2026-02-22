@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./dev.db
+      FITBIT_CLIENT_ID: test_client_id
+      FITBIT_CLIENT_SECRET: test_client_secret
+      FITBIT_REDIRECT_URI: http://localhost:3000/api/auth/fitbit/callback
+      SYNC_CRON_SECRET: test_sync_secret
+      AUTO_SYNC_DAYS: "3"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prisma Generate
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

@@ -1,8 +1,14 @@
 # fitPulse
 
+[![CI](https://github.com/anup4khandelwal/fitPulse/actions/workflows/ci.yml/badge.svg)](https://github.com/anup4khandelwal/fitPulse/actions/workflows/ci.yml)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A modern, open-source Fitbit dashboard focused on **real fitness outcomes**: conditioning, recovery, sleep, heart-zone training, and trend-based coaching.
 
 If you are building better health from data, this repo is for you.
+
+If this project is useful, please **star the repo** to help more people discover it.
 
 ## Why fitPulse
 
@@ -92,6 +98,8 @@ Contributions are welcome.
 4. Open a PR with screenshots and test notes
 
 Please keep PRs small and production-minded.
+
+Contributor guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ## Support the Project
 
