@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id              String           @id @default(cuid())
+  fitbitUserId    String?          @unique
+  createdAt       DateTime         @default(now())
+  fitbitAuth      FitbitAuth?
+  weeklyGoal      WeeklyGoal?
+  alertPreference AlertPreference?
+  dailySummaries  DailySummary[]
+  dailySleep      DailySleep[]
+  dailyHeartZones DailyHeartZones[]
+  dailyRecovery   DailyRecovery[]
+  activityLogs    ActivityLog[]
+  syncRuns        SyncRun[]
+  alerts          AlertEvent[]
+}
+
+model FitbitAuth {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  accessToken  String
+  refreshToken String
+  scope        String
+  expiresAt    DateTime
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailySummary {
+  id                  String   @id @default(cuid())
+  userId              String
+  date                DateTime
+  steps               Int      @default(0)
+  activeMinutes       Int      @default(0)
+  sedentaryMinutes    Int      @default(0)
+  lightlyActiveMins   Int      @default(0)
+  fairlyActiveMins    Int      @default(0)
+  veryActiveMins      Int      @default(0)
+  caloriesOut         Int?
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model DailyRecovery {
+  id                 String   @id @default(cuid())
+  userId             String
+  date               DateTime
+  cardioFitnessScore Float?
+  vo2Max             Float?
+  hrvRmssd           Float?
+  hrvDeepRmssd       Float?
+  breathingRate      Float?
+  spo2Avg            Float?
+  spo2Min            Float?
+  spo2Max            Float?
+  skinTempC          Float?
+  coreTempC          Float?
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model DailySleep {
+  id            String    @id @default(cuid())
+  userId        String
+  date          DateTime
+  minutesAsleep Int       @default(0)
+  timeInBed     Int       @default(0)
+  efficiency    Int       @default(0)
+  deepMinutes   Int?
+  remMinutes    Int?
+  lightMinutes  Int?
+  wakeMinutes   Int?
+  sleepStart    DateTime?
+  sleepEnd      DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model DailyHeartZones {
+  id                String   @id @default(cuid())
+  userId            String
+  date              DateTime
+  zone2Minutes      Int      @default(0)
+  cardioMinutes     Int?
+  peakMinutes       Int?
+  outOfRangeMinutes Int?
+  restingHeartRate  Int?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  userId          String
+  startTime       DateTime
+  activityName    String
+  durationMinutes Int
+  calories        Int?
+  distance        Float?
+  steps           Int?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SyncRun {
+  id         String   @id @default(cuid())
+  userId     String
+  trigger    String
+  status     String
+  fromDate   DateTime
+  toDate     DateTime
+  syncedDays Int      @default(0)
+  warnings   String?
+  lastError  String?
+  attempts   Int      @default(0)
+  startedAt  DateTime @default(now())
+  endedAt    DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt(sort: Desc)])
+}
+
+model WeeklyGoal {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  zone2TargetMinutes    Int      @default(180)
+  avgSleepTargetHours   Float    @default(7)
+  avgStepsTarget        Int      @default(8500)
+  sleepScoreMode        String   @default("fitbit")
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AlertPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  minSleepHours       Float    @default(6.5)
+  minAvgSteps         Int      @default(7000)
+  minZone2Days        Int      @default(3)
+  maxRestingHrDelta   Float    @default(4)
+  alertsEnabled       Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AlertEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  dayKey     String
+  type       String
+  severity   String
+  message    String
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayKey, type])
+  @@index([userId, createdAt(sort: Desc)])
+}

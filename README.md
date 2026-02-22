@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# fitPulse
 
-## Getting Started
+A modern, open-source Fitbit dashboard focused on **real fitness outcomes**: conditioning, recovery, sleep, heart-zone training, and trend-based coaching.
 
-First, run the development server:
+If you are building better health from data, this repo is for you.
+
+## Why fitPulse
+
+Most dashboards stop at vanity metrics. fitPulse is designed for:
+
+- Daily readiness and recovery context
+- Zone 2 consistency and intensity balance (80/20)
+- Sleep quality and trends
+- Weekly coaching signals from real Fitbit API data
+- A clean, modern UX for daily use
+
+## Core Features
+
+- OAuth Fitbit integration
+- Calendar-based health dashboard
+- Sleep insights + derived sleep score breakdown
+- Step insights + pacing + streaks
+- RHR + Zone 2 planning
+- Conditioning insights (active/sedentary balance, adherence)
+- Recovery signals (VO2, HRV, breathing rate, SpO2, temperature)
+- Alerts engine + preferences
+- Auto-sync endpoint for cron workflows
+
+## Tech Stack
+
+- Next.js 16 (App Router)
+- TypeScript
+- Prisma + SQLite
+- Fitbit Web API
+
+## Quick Start
 
 ```bash
+npm install
+cp .env.example .env   # create this file manually if not present
+npx prisma migrate dev
+npx prisma generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open: `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Never commit real secrets. Use your own values locally:
 
-## Learn More
+```env
+DATABASE_URL="file:./dev.db"
+FITBIT_CLIENT_ID="your_client_id"
+FITBIT_CLIENT_SECRET="your_client_secret"
+FITBIT_REDIRECT_URI="http://localhost:3000/api/auth/fitbit/callback"
+DEMO_MODE="false"
+SYNC_CRON_SECRET="replace_with_long_random_secret"
+AUTO_SYNC_DAYS="3"
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Fitbit API Coverage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+fitPulse uses Fitbit APIs for:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Daily activity summary (steps, active/sedentary, calories)
+- Sleep logs + stages
+- Heart rate zones + resting heart rate
+- Cardio fitness / VO2 max
+- HRV
+- Breathing rate
+- SpO2
+- Temperature (when available)
 
-## Deploy on Vercel
+Some metrics are intentionally labeled **Derived** where Fitbit does not provide a direct score endpoint.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Roadmap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Training load vs recovery chart
+- Overtraining risk flag
+- Strength and mobility tracking module
+- Coach summary (weekly AI narrative)
+- Mobile-first companion layout
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repo
+2. Create a feature branch
+3. Make focused changes with clear commit messages
+4. Open a PR with screenshots and test notes
+
+Please keep PRs small and production-minded.
+
+## Support the Project
+
+If fitPulse helps you, please:
+
+- Star this repo
+- Share it with friends building fitness dashboards
+- Open issues for bugs/feature requests
+- Contribute improvements
+
+## Security
+
+- Do not commit `.env` files or production tokens
+- Revoke and rotate tokens if leaked
+- Use separate Fitbit apps for local and production where possible
+
+## License
+
+MIT

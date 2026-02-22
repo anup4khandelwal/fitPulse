@@ -1,26 +1,178 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-sora);
+  --ink-900: #0f172a;
+  --ink-700: #334155;
+  --surface-0: #f4f7fb;
+  --surface-1: #ffffff;
+  --line-soft: rgba(15, 23, 42, 0.08);
+  --brand-500: #0ea5a4;
+  --brand-600: #0f766e;
+  --brand-700: #155e75;
+  --accent-500: #0ea5e9;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+  color: var(--ink-900);
+  background: transparent;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), sans-serif;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% -8%, rgba(14, 165, 164, 0.24), transparent 30%),
+    radial-gradient(circle at 95% 0%, rgba(14, 165, 233, 0.2), transparent 26%),
+    linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+}
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(240, 249, 255, 0.88));
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -65% auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(14, 165, 164, 0.25), transparent 70%);
+}
+
+.soft-card {
+  border: 1px solid var(--line-soft);
+  background: var(--surface-1);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+  transition:
+    transform 240ms ease,
+    box-shadow 240ms ease,
+    border-color 240ms ease;
+}
+
+.soft-subcard {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(180deg, #fcfdff 0%, #f8fbff 100%);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.fade-up {
+  animation: fade-up 460ms ease-out both;
+}
+
+.d-1 {
+  animation-delay: 70ms;
+}
+
+.d-2 {
+  animation-delay: 130ms;
+}
+
+.d-3 {
+  animation-delay: 190ms;
+}
+
+.d-4 {
+  animation-delay: 250ms;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(14, 116, 144, 0.22);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+}
+
+.interactive-subcard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 184, 166, 0.32);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #e8eef6 20%, #f3f7fc 40%, #e8eef6 60%);
+  background-size: 220% 100%;
+  animation: shimmer 1.35s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .skeleton,
+  .sparkline-line,
+  .sparkline-dot {
+    animation: none !important;
+  }
+
+  .soft-card,
+  .soft-subcard {
+    transition: none !important;
+  }
+}
+
+.sparkline-line {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw-line 900ms ease-out forwards;
+}
+
+.sparkline-dot {
+  transform-origin: center;
+  transform-box: fill-box;
+  opacity: 0;
+  animation: pop-dot 420ms ease-out forwards;
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pop-dot {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
