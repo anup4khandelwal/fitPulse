@@ -51,6 +51,27 @@ npm run dev
 
 Open: `http://localhost:3000`
 
+## Testing
+
+```bash
+npm run test:unit
+npm run test:e2e
+```
+
+Install Playwright browser locally (first time):
+
+```bash
+npx playwright install chromium
+```
+
+Playwright MCP is installed. Run:
+
+```bash
+npm run mcp:playwright
+```
+
+MCP config is also included at `.mcp.json`.
+
 ## Environment Variables
 
 Never commit real secrets. Use your own values locally:
