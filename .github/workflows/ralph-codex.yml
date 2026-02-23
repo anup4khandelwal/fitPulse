@@ -52,12 +52,6 @@ jobs:
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
 
-      - name: Create branch
-        run: |
-          BRANCH="agent/${{ github.run_id }}"
-          git checkout -b "$BRANCH"
-          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
-
       - name: Run Ralph Planning
         run: |
           chmod +x scripts/agent/run-ralph.sh
@@ -98,7 +92,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: ${{ env.BRANCH }}
+          base: main
+          branch: agent/${{ github.run_id }}
           title: "agent: ${{ inputs.task }}"
           body: |
             ## Ralph + Codex Automated Task
