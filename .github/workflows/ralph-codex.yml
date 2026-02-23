@@ -92,6 +92,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.BOT_GH_TOKEN != '' && secrets.BOT_GH_TOKEN || github.token }}
           base: main
           branch: agent/${{ github.run_id }}
           title: "agent: ${{ inputs.task }}"

@@ -30,6 +30,14 @@ Set these in GitHub repo settings:
 
 - `OPENAI_API_KEY` (for Codex CLI if required)
 - `RALPH_API_KEY` (if your Ralph tooling needs it)
+- `BOT_GH_TOKEN` (recommended) personal access token with `repo` scope for PR creation
+
+## GitHub repository setting required
+
+If you rely on default `GITHUB_TOKEN`, enable:
+
+- `Settings -> Actions -> General -> Workflow permissions`
+- Turn on `Allow GitHub Actions to create and approve pull requests`
 
 ## Run the automation
 
