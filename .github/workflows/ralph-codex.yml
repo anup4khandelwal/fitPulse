@@ -124,10 +124,11 @@ jobs:
             exit 0
           fi
 
-          echo "Automatic PR creation failed."
+          echo "::warning::Automatic PR creation failed."
           echo "Manual PR URL: ${PR_URL}"
           echo
           echo "If this keeps happening, configure BOT_GH_TOKEN with:"
           echo "- Classic PAT: repo scope"
           echo "- Fine-grained PAT: Contents (Read/Write), Pull requests (Read/Write) on this repo"
-          exit 1
+          echo "Continuing without failing workflow."
+          exit 0
