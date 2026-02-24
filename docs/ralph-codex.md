@@ -22,9 +22,9 @@ Set these in GitHub repo settings:
 ### Variables
 
 - `RALPH_CMD`: command used for planning
-  - Recommended: `codex exec --full-auto "Create an implementation plan for this task: {TASK}. Output markdown plan only, no code changes."`
+  - Recommended: `codex --full-auto "Create an implementation plan for this task: {TASK}. Output markdown plan only, no code changes."`
 - `CODEX_CMD`: command used for implementation
-  - Recommended: `codex exec --full-auto "{TASK}"`
+  - Recommended: `codex --full-auto "{TASK}"`
 
 ### Secrets
 
@@ -71,3 +71,4 @@ export CODEX_CMD="npx codex-cli run"
 - This scaffold is intentionally tool-agnostic; swap commands to match your preferred Ralph/Codex clients.
 - Workflow installs `@openai/codex` globally, so `codex` command is available in CI.
 - Wrappers support either `{TASK}` placeholder or appending task as final argument.
+- Legacy `codex exec ...` format is auto-normalized to `codex ...`.

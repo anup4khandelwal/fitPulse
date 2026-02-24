@@ -23,6 +23,9 @@ fi
 
 echo "[ralph] Running: $RALPH_CMD"
 CMD="$RALPH_CMD"
+if [[ "$CMD" == codex\ exec* ]]; then
+  CMD="${CMD/codex exec/codex}"
+fi
 if [[ "$CMD" == *"{TASK}"* ]]; then
   CMD="${CMD//\{TASK\}/$TASK}"
 else

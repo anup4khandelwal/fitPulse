@@ -22,6 +22,9 @@ fi
 
 echo "[codex] Running: $CODEX_CMD"
 CMD="$CODEX_CMD"
+if [[ "$CMD" == codex\ exec* ]]; then
+  CMD="${CMD/codex exec/codex}"
+fi
 if [[ "$CMD" == *"{TASK}"* ]]; then
   CMD="${CMD//\{TASK\}/$TASK}"
 else
@@ -34,4 +37,5 @@ STATUS=$?
 set -e
 
 printf "%s\n" "$OUTPUT" > docs/codex-summary.md
+printf "%s\n" "$OUTPUT"
 exit "$STATUS"
