@@ -33,6 +33,7 @@ jobs:
       CODEX_CMD: ${{ vars.CODEX_CMD }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       RALPH_API_KEY: ${{ secrets.RALPH_API_KEY }}
+      BOT_GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,9 +91,11 @@ jobs:
         run: npm run test:e2e
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v7
+        continue-on-error: true
         with:
-          token: ${{ secrets.BOT_GH_TOKEN != '' && secrets.BOT_GH_TOKEN || github.token }}
+          token: ${{ secrets.BOT_GH_TOKEN || github.token }}
           base: main
           branch: agent/${{ github.run_id }}
           title: "agent: ${{ inputs.task }}"
@@ -111,3 +114,20 @@ jobs:
             docs/agent-plan.md
             docs/codex-summary.md
             docs/agent-log.md
+
+      - name: PR Result
+        if: always()
+        run: |
+          PR_URL="https://github.com/${GITHUB_REPOSITORY}/pull/new/agent/${GITHUB_RUN_ID}"
+          if [[ "${{ steps.cpr.outcome }}" == "success" ]]; then
+            echo "Pull request created/updated successfully."
+            exit 0
+          fi
+
+          echo "Automatic PR creation failed."
+          echo "Manual PR URL: ${PR_URL}"
+          echo
+          echo "If this keeps happening, configure BOT_GH_TOKEN with:"
+          echo "- Classic PAT: repo scope"
+          echo "- Fine-grained PAT: Contents (Read/Write), Pull requests (Read/Write) on this repo"
+          exit 1
