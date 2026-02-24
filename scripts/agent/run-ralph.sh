@@ -35,4 +35,23 @@ STATUS=$?
 set -e
 
 printf "%s\n" "$OUTPUT" > docs/agent-plan.md
-exit "$STATUS"
+printf "%s\n" "$OUTPUT"
+
+if [[ $STATUS -ne 0 ]]; then
+  echo "[ralph] command failed (exit $STATUS). Falling back to generated plan."
+  {
+    echo "# Ralph Plan (Fallback)"
+    echo
+    echo "Task: $TASK"
+    echo
+    echo "RALPH_CMD failed with exit code: $STATUS"
+    echo
+    echo "## Suggested Plan"
+    echo "- Clarify acceptance criteria"
+    echo "- Implement in small, testable commits"
+    echo "- Validate with lint/build/tests"
+  } > docs/agent-plan.md
+  exit 0
+fi
+
+exit 0

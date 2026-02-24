@@ -57,9 +57,16 @@ jobs:
         run: npx prisma migrate deploy
 
       - name: Run Ralph Planning
+        continue-on-error: true
         run: |
           chmod +x scripts/agent/run-ralph.sh
           scripts/agent/run-ralph.sh "$TASK"
+
+      - name: Show Ralph Plan
+        if: always()
+        run: |
+          echo "----- docs/agent-plan.md -----"
+          sed -n '1,200p' docs/agent-plan.md || true
 
       - name: Run Codex Implementation
         run: |
