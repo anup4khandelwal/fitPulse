@@ -21,5 +21,17 @@ if [[ -z "${CODEX_CMD:-}" ]]; then
 fi
 
 echo "[codex] Running: $CODEX_CMD"
-# shellcheck disable=SC2086
-$CODEX_CMD "$TASK" > docs/codex-summary.md
+CMD="$CODEX_CMD"
+if [[ "$CMD" == *"{TASK}"* ]]; then
+  CMD="${CMD//\{TASK\}/$TASK}"
+else
+  CMD="$CMD \"$TASK\""
+fi
+
+set +e
+OUTPUT="$(eval "$CMD" 2>&1)"
+STATUS=$?
+set -e
+
+printf "%s\n" "$OUTPUT" > docs/codex-summary.md
+exit "$STATUS"

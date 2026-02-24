@@ -113,10 +113,6 @@ jobs:
             - Log: `docs/agent-log.md`
           commit-message: "chore(agent): ${{ inputs.task }}"
           labels: automation
-          add-paths: |
-            docs/agent-plan.md
-            docs/codex-summary.md
-            docs/agent-log.md
 
       - name: PR Result
         if: always()

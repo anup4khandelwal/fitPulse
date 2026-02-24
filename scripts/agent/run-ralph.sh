@@ -22,5 +22,17 @@ if [[ -z "${RALPH_CMD:-}" ]]; then
 fi
 
 echo "[ralph] Running: $RALPH_CMD"
-# shellcheck disable=SC2086
-$RALPH_CMD "$TASK" > docs/agent-plan.md
+CMD="$RALPH_CMD"
+if [[ "$CMD" == *"{TASK}"* ]]; then
+  CMD="${CMD//\{TASK\}/$TASK}"
+else
+  CMD="$CMD \"$TASK\""
+fi
+
+set +e
+OUTPUT="$(eval "$CMD" 2>&1)"
+STATUS=$?
+set -e
+
+printf "%s\n" "$OUTPUT" > docs/agent-plan.md
+exit "$STATUS"
