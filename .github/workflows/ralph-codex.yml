@@ -29,8 +29,8 @@ jobs:
       AUTO_SYNC_DAYS: "3"
       NEXT_TELEMETRY_DISABLED: "1"
       TASK: ${{ inputs.task }}
-      RALPH_CMD: ${{ vars.RALPH_CMD }}
-      CODEX_CMD: ${{ vars.CODEX_CMD }}
+      RALPH_CMD: ${{ vars.RALPH_CMD || secrets.RALPH_CMD }}
+      CODEX_CMD: ${{ vars.CODEX_CMD || secrets.CODEX_CMD }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       RALPH_API_KEY: ${{ secrets.RALPH_API_KEY }}
       BOT_GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
