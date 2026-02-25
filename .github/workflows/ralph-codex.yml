@@ -107,6 +107,12 @@ jobs:
           chmod +x scripts/agent/run-codex.sh
           scripts/agent/run-codex.sh "$TASK_TRIMMED"
 
+      - name: Show Codex Summary
+        if: always()
+        run: |
+          echo "----- docs/codex-summary.md -----"
+          sed -n '1,220p' docs/codex-summary.md || true
+
       - name: Append task log
         run: |
           {
