@@ -71,6 +71,17 @@ jobs:
           fi
           echo "OpenAI key validation passed."
 
+      - name: Configure Codex API-key Auth
+        run: |
+          mkdir -p "$HOME/.codex"
+          cat > "$HOME/.codex/auth.json" <<JSON
+          {"OPENAI_API_KEY":"${OPENAI_API_KEY}"}
+          JSON
+          cat > "$HOME/.codex/config.toml" <<'TOML'
+          preferred_auth_method = "apikey"
+          TOML
+          echo "Codex auth profile configured for API key mode."
+
       - name: Prisma Generate
         run: npx prisma generate
 
