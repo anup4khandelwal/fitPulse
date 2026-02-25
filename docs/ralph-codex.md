@@ -72,3 +72,5 @@ export CODEX_CMD="npx codex-cli run"
 - Workflow installs `@openai/codex` globally, so `codex` command is available in CI.
 - Wrappers support either `{TASK}` placeholder or appending task as final argument.
 - Legacy `codex exec ...` format is auto-normalized to `codex ...`.
+- If `{TASK}` is present, wrapper replaces it explicitly.
+- If command starts with `codex` and has no placeholder, wrapper runs it as-is (no extra task append).

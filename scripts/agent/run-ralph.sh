@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TASK="${1:-}"
+TASK_RAW="${1:-}"
+TASK="${TASK_RAW#"${TASK_RAW%%[![:space:]]*}"}"
+TASK="${TASK%"${TASK##*[![:space:]]}"}"
 if [[ -z "$TASK" ]]; then
   echo "Usage: run-ralph.sh \"<task>\""
   exit 1
@@ -26,11 +28,20 @@ CMD="$RALPH_CMD"
 if [[ "$CMD" == codex\ exec* ]]; then
   CMD="${CMD/codex exec/codex}"
 fi
+MODE="as-is"
 if [[ "$CMD" == *"{TASK}"* ]]; then
   CMD="${CMD//\{TASK\}/$TASK}"
+  MODE="placeholder"
+elif [[ "$CMD" == *"\$TASK"* ]]; then
+  MODE="env-task"
+elif [[ "$CMD" == codex* ]]; then
+  MODE="as-is-codex"
 else
   CMD="$CMD \"$TASK\""
+  MODE="appended"
 fi
+
+echo "[ralph] mode: $MODE"
 
 set +e
 OUTPUT="$(eval "$CMD" 2>&1)"
