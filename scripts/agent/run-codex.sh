@@ -46,6 +46,7 @@ fi
 echo "[codex] mode: $MODE"
 echo "[codex] command prepared."
 
+OPENAI_API_KEY="$(printf "%s" "${OPENAI_API_KEY:-}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
 if [[ -z "${OPENAI_API_KEY:-}" ]]; then
   echo "[codex] OPENAI_API_KEY is empty in this process."
   exit 1
@@ -53,6 +54,11 @@ fi
 
 export OPENAI_API_KEY
 export OPENAI_API_TOKEN="${OPENAI_API_KEY}"
+
+if [[ "${OPENAI_API_KEY:0:3}" != "sk-" ]]; then
+  echo "[codex] OPENAI_API_KEY format looks invalid (expected prefix sk-)."
+  exit 1
+fi
 
 set +e
 OUTPUT="$(eval "$CMD" 2>&1)"

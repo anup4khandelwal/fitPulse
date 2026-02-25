@@ -52,8 +52,13 @@ jobs:
 
       - name: Validate OpenAI API Key
         run: |
+          OPENAI_API_KEY="$(printf "%s" "${OPENAI_API_KEY:-}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
           if [[ -z "${OPENAI_API_KEY:-}" ]]; then
             echo "::error::OPENAI_API_KEY is empty. Set it in Actions secrets (or variable)."
+            exit 1
+          fi
+          if [[ "${OPENAI_API_KEY:0:3}" != "sk-" ]]; then
+            echo "::error::OPENAI_API_KEY format invalid (expected sk- prefix)."
             exit 1
           fi
           HTTP_CODE="$(curl -sS -o /tmp/openai-auth.json -w "%{http_code}" \
