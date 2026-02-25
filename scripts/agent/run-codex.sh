@@ -60,6 +60,15 @@ if [[ "${OPENAI_API_KEY:0:3}" != "sk-" ]]; then
   exit 1
 fi
 
+KEY_PREFIX="${OPENAI_API_KEY:0:7}"
+KEY_LEN="${#OPENAI_API_KEY}"
+echo "[codex] key prefix: ${KEY_PREFIX}***"
+echo "[codex] key length: ${KEY_LEN}"
+if [[ "$KEY_LEN" -lt 20 ]]; then
+  echo "[codex] OPENAI_API_KEY length is too short."
+  exit 1
+fi
+
 set +e
 OUTPUT="$(eval "$CMD" 2>&1)"
 STATUS=$?
