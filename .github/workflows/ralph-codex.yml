@@ -113,6 +113,23 @@ jobs:
           echo "----- docs/codex-summary.md -----"
           sed -n '1,220p' docs/codex-summary.md || true
 
+      - name: Resolve Fallback Label
+        id: fallback_label
+        if: always()
+        run: |
+          if [[ -f docs/codex-fallback.status ]]; then
+            VALUE="$(cat docs/codex-fallback.status | tr -d '\r\n ')"
+            if [[ "$VALUE" == "quota" ]]; then
+              echo "label=blocked:quota" >> "$GITHUB_OUTPUT"
+            elif [[ "$VALUE" == "auth" ]]; then
+              echo "label=blocked:auth" >> "$GITHUB_OUTPUT"
+            else
+              echo "label=automation" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "label=automation" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Append task log
         run: |
           {
@@ -159,7 +176,9 @@ jobs:
             - Execution: `docs/codex-summary.md`
             - Log: `docs/agent-log.md`
           commit-message: "chore(agent): ${{ inputs.task }}"
-          labels: automation
+          labels: |
+            automation
+            ${{ steps.fallback_label.outputs.label }}
 
       - name: PR Result
         if: always()

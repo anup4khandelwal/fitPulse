@@ -78,7 +78,7 @@ printf "%s\n" "$OUTPUT" > docs/codex-summary.md
 printf "%s\n" "$OUTPUT"
 
 if [[ $STATUS -ne 0 ]]; then
-  if printf "%s" "$OUTPUT" | rg -qi "quota exceeded|insufficient_quota|billing|rate limit|401 unauthorized|missing bearer"; then
+  if printf "%s" "$OUTPUT" | rg -qi "quota exceeded|insufficient_quota|billing"; then
     {
       echo "# Codex Execution Summary (Fallback)"
       echo
@@ -94,6 +94,30 @@ if [[ $STATUS -ne 0 ]]; then
       echo "- Keep workflow green so PR can still capture planning artifacts."
       echo "- Re-run after OpenAI billing/quota/auth issue is fixed."
     } > docs/codex-summary.md
+    printf "quota\n" > docs/codex-fallback.status
+    echo "[codex] Fallback reason: quota"
+    echo "[codex] Recoverable platform/auth issue detected; continuing with fallback summary."
+    exit 0
+  fi
+
+  if printf "%s" "$OUTPUT" | rg -qi "401 unauthorized|missing bearer|authentication"; then
+    {
+      echo "# Codex Execution Summary (Fallback)"
+      echo
+      echo "Task: $TASK"
+      echo
+      echo "Codex command failed with recoverable platform/auth issue."
+      echo
+      echo "## Detected Error"
+      printf "%s\n" "$OUTPUT" | sed -n '1,80p'
+      echo
+      echo "## Fallback Action"
+      echo "- Marked as plan-only run."
+      echo "- Keep workflow green so PR can still capture planning artifacts."
+      echo "- Re-run after OpenAI authentication issue is fixed."
+    } > docs/codex-summary.md
+    printf "auth\n" > docs/codex-fallback.status
+    echo "[codex] Fallback reason: auth"
     echo "[codex] Recoverable platform/auth issue detected; continuing with fallback summary."
     exit 0
   fi
