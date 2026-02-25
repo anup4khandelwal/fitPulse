@@ -74,3 +74,19 @@ export CODEX_CMD="npx codex-cli run"
 - If `{TASK}` is present, wrapper replaces it explicitly.
 - If command starts with `codex` and has no placeholder, wrapper runs it as-is (no extra task append).
 - In non-interactive CI, wrappers force `codex exec` mode when a plain `codex ...` command is provided.
+
+
+## Ralph-Wiggum-style defaults (implemented)
+
+To make the planner/executor loop reliable even with minimal configuration, the wrappers now include:
+
+- Structured planner prompt template at `scripts/agent/prompts/ralph-plan.txt`
+- Structured executor prompt template at `scripts/agent/prompts/codex-implement.txt`
+- Automatic plan-shape validation (`Goal`, `Validation checklist`) in `docs/agent-plan.md`
+- Optional plan-to-executor context handoff (enabled by default via `USE_RALPH_PLAN_CONTEXT=true`)
+- Local fallback behavior: if `RALPH_CMD`/`CODEX_CMD` are not set but `codex` exists, wrappers run sensible defaults automatically
+
+### New optional environment variable
+
+- `USE_RALPH_PLAN_CONTEXT` (default `true`): pass `docs/agent-plan.md` into Codex execution prompt.
+

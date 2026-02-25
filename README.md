@@ -79,6 +79,9 @@ Automated task-loop scaffold is included:
 - Workflow: `.github/workflows/ralph-codex.yml`
 - Docs: `docs/ralph-codex.md`
 - Local wrappers: `scripts/agent/run-ralph.sh`, `scripts/agent/run-codex.sh`
+- Prompt templates: `scripts/agent/prompts/ralph-plan.txt`, `scripts/agent/prompts/codex-implement.txt`
+
+Set `USE_RALPH_PLAN_CONTEXT=false` if you do not want to inject the Ralph plan into Codex execution prompts.
 
 ## Environment Variables
 

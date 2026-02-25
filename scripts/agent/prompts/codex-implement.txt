@@ -1,0 +1,13 @@
+Implement this task in the current repository.
+
+Task:
+{{TASK}}
+
+Planner context (from Ralph):
+{{PLAN}}
+
+Execution rules:
+- Follow the plan, but adapt if code reality differs.
+- Keep changes focused and production-safe.
+- Run relevant checks before finishing.
+- Summarize changed files and validation results.
