@@ -31,7 +31,7 @@ jobs:
       TASK: ${{ inputs.task }}
       RALPH_CMD: ${{ vars.RALPH_CMD || secrets.RALPH_CMD }}
       CODEX_CMD: ${{ vars.CODEX_CMD || secrets.CODEX_CMD }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || vars.OPENAI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       RALPH_API_KEY: ${{ secrets.RALPH_API_KEY }}
       BOT_GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
     steps:
