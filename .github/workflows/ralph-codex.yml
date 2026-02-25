@@ -31,7 +31,7 @@ jobs:
       TASK: ${{ inputs.task }}
       RALPH_CMD: ${{ vars.RALPH_CMD || secrets.RALPH_CMD }}
       CODEX_CMD: ${{ vars.CODEX_CMD || secrets.CODEX_CMD }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || vars.OPENAI_API_KEY }}
       RALPH_API_KEY: ${{ secrets.RALPH_API_KEY }}
       BOT_GH_TOKEN: ${{ secrets.BOT_GH_TOKEN }}
     steps:
@@ -49,6 +49,22 @@ jobs:
 
       - name: Install Codex CLI
         run: npm install -g @openai/codex
+
+      - name: Validate OpenAI API Key
+        run: |
+          if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+            echo "::error::OPENAI_API_KEY is empty. Set it in Actions secrets (or variable)."
+            exit 1
+          fi
+          HTTP_CODE="$(curl -sS -o /tmp/openai-auth.json -w "%{http_code}" \
+            https://api.openai.com/v1/models \
+            -H "Authorization: Bearer ${OPENAI_API_KEY}")"
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::error::OpenAI key validation failed (HTTP $HTTP_CODE)."
+            sed -n '1,120p' /tmp/openai-auth.json || true
+            exit 1
+          fi
+          echo "OpenAI key validation passed."
 
       - name: Prisma Generate
         run: npx prisma generate
