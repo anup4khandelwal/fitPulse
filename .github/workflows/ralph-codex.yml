@@ -59,8 +59,9 @@ jobs:
       - name: Run Ralph Planning
         continue-on-error: true
         run: |
+          TASK_TRIMMED="$(echo "$TASK" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
           chmod +x scripts/agent/run-ralph.sh
-          scripts/agent/run-ralph.sh "$TASK"
+          scripts/agent/run-ralph.sh "$TASK_TRIMMED"
 
       - name: Show Ralph Plan
         if: always()
@@ -70,8 +71,9 @@ jobs:
 
       - name: Run Codex Implementation
         run: |
+          TASK_TRIMMED="$(echo "$TASK" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
           chmod +x scripts/agent/run-codex.sh
-          scripts/agent/run-codex.sh "$TASK"
+          scripts/agent/run-codex.sh "$TASK_TRIMMED"
 
       - name: Append task log
         run: |
