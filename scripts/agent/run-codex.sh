@@ -24,9 +24,6 @@ fi
 
 echo "[codex] Running: $CODEX_CMD"
 CMD="$CODEX_CMD"
-if [[ "$CMD" == codex\ exec* ]]; then
-  CMD="${CMD/codex exec/codex}"
-fi
 MODE="as-is"
 if [[ "$CMD" == *"{TASK}"* ]]; then
   CMD="${CMD//\{TASK\}/$TASK}"
@@ -38,6 +35,12 @@ elif [[ "$CMD" == codex* ]]; then
 else
   CMD="$CMD \"$TASK\""
   MODE="appended"
+fi
+
+# CI is non-interactive; force codex exec mode if caller configured plain codex mode.
+if [[ ! -t 0 && "$CMD" == codex* && "$CMD" != codex\ exec* ]]; then
+  CMD="codex exec ${CMD#codex }"
+  MODE="${MODE}-forced-exec"
 fi
 
 echo "[codex] mode: $MODE"
