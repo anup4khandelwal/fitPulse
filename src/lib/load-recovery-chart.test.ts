@@ -101,6 +101,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-03-28T12:00:00.000Z"));
   prismaMock.dailyHeartZones.findMany.mockReset();
   prismaMock.dailySleep.findMany.mockReset();
+  prismaMock.dailyRecovery ??= { findMany: vi.fn() };
   prismaMock.dailyRecovery.findMany.mockReset();
   calculateSleepScoreDetailedMock.mockClear();
 });
@@ -345,6 +346,22 @@ describe("buildDemoLoadRecoveryChartPayload", () => {
     expect(payload.state).not.toBe("empty");
     expect(payload.summary).not.toBeNull();
   });
+
+  it("preserves supplied recent demo-day dates when backfilling older history", () => {
+    const recentDays = Array.from({ length: 6 }, (_, index) =>
+      makeDashboardDay(subDays(new Date("2026-03-28T00:00:00.000Z"), 5 - index), {
+        zone2Minutes: 100 + index,
+      }),
+    );
+
+    const payload = buildDemoLoadRecoveryChartPayload(recentDays);
+
+    expect(payload.points).toHaveLength(28);
+    expect(payload.points.slice(-6).map((point) => point.date)).toEqual(
+      recentDays.map((day) => day.date),
+    );
+    expect(payload.points[payload.points.length - 1]?.load).toBe(105);
+  });
 });
 
 describe("getLoadRecoveryChartPayload", () => {
@@ -425,6 +442,40 @@ describe("getLoadRecoveryChartPayload", () => {
     });
     expect(calculateSleepScoreDetailedMock).toHaveBeenCalled();
     expect(payload.points).toHaveLength(28);
+    expect(payload.state).toBe("partial");
+  });
+
+  it("degrades gracefully when the recovery model is unavailable", async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const from = subDays(today, 89);
+
+    prismaMock.dailyHeartZones.findMany.mockResolvedValue(
+      Array.from({ length: 90 }, (_, index) => ({
+        date: addDays(from, index),
+        zone2Minutes: index >= 83 ? (index - 82) * 10 : 0,
+        cardioMinutes: null,
+        peakMinutes: null,
+        restingHeartRate: null,
+      })),
+    );
+    prismaMock.dailySleep.findMany.mockResolvedValue(
+      Array.from({ length: 90 }, (_, index) => ({
+        date: addDays(from, index),
+        minutesAsleep: 480,
+        timeInBed: 510,
+        efficiency: 94,
+        deepMinutes: 90,
+        remMinutes: 100,
+        wakeMinutes: 30,
+      })),
+    );
+    delete (prismaMock as { dailyRecovery?: unknown }).dailyRecovery;
+
+    const payload = await getLoadRecoveryChartPayload("user-1");
+
+    expect(payload.points).toHaveLength(28);
+    expect(payload.points.every((point) => point.hasHrv === false)).toBe(true);
     expect(payload.state).toBe("partial");
   });
 });

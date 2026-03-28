@@ -235,15 +235,31 @@ function emptySourceDay(date: Date): LoadRecoverySourceDay {
   };
 }
 
-function buildSyntheticDemoSourceDays(today: Date) {
+function buildSyntheticDemoSourceDays(from: Date, count: number, startIndex = 0) {
+  return Array.from({ length: count }, (_, index) => ({
+    ...emptySourceDay(addDays(from, index)),
+    zone2Minutes: startIndex + index >= 35 ? (startIndex + index - 34) * 10 : 20,
+    sleepScore: 90,
+    hrvRmssd: (startIndex + index) % 3 === 0 ? null : 38 + ((startIndex + index) % 5) * 2,
+  }));
+}
+
+function mapDemoDaysToSourceDays(days: DayDashboard[], startIndex = 0): LoadRecoverySourceDay[] {
+  return days.map((day, index): LoadRecoverySourceDay => ({
+    date: day.date,
+    zone2Minutes: day.zone2Minutes,
+    cardioMinutes: day.cardioMinutes,
+    peakMinutes: day.peakMinutes,
+    sleepScore: day.sleepScore,
+    restingHeartRate: day.restingHeartRate,
+    hrvRmssd: (startIndex + index) % 3 === 0 ? null : 38 + ((startIndex + index) % 5) * 2,
+  }));
+}
+
+function buildDefaultSyntheticDemoHistory(today: Date) {
   const from = subDays(today, 41);
 
-  return Array.from({ length: 42 }, (_, index) => ({
-    ...emptySourceDay(addDays(from, index)),
-    zone2Minutes: index >= 35 ? (index - 34) * 10 : 20,
-    sleepScore: 90,
-    hrvRmssd: index % 3 === 0 ? null : 38 + (index % 5) * 2,
-  }));
+  return buildSyntheticDemoSourceDays(from, 42);
 }
 
 export async function getLoadRecoveryChartPayload(
@@ -253,6 +269,11 @@ export async function getLoadRecoveryChartPayload(
 ) {
   const today = startOfDay(new Date());
   const from = subDays(today, 89);
+  const recoveryModel = (prisma as unknown as {
+    dailyRecovery?: {
+      findMany: (args: unknown) => Promise<Array<{ date: Date; hrvRmssd: number | null }>>;
+    };
+  }).dailyRecovery;
 
   const [zones, sleeps, recoveries] = await Promise.all([
     prisma.dailyHeartZones.findMany({
@@ -279,14 +300,16 @@ export async function getLoadRecoveryChartPayload(
       },
       orderBy: { date: "asc" },
     }),
-    prisma.dailyRecovery.findMany({
-      where: { userId, date: { gte: from, lte: today } },
-      select: {
-        date: true,
-        hrvRmssd: true,
-      },
-      orderBy: { date: "asc" },
-    }),
+    recoveryModel?.findMany
+      ? recoveryModel.findMany({
+          where: { userId, date: { gte: from, lte: today } },
+          select: {
+            date: true,
+            hrvRmssd: true,
+          },
+          orderBy: { date: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   const dayMap = new Map<string, LoadRecoverySourceDay>();
@@ -337,18 +360,20 @@ export function buildDemoLoadRecoveryChartPayload(days: DayDashboard[]) {
     .sort((left, right) => left.date.localeCompare(right.date))
     .slice(-42);
 
+  if (recentDays.length === 0) {
+    return buildLoadRecoveryChartPayloadFromDays(buildDefaultSyntheticDemoHistory(today));
+  }
+
   const sourceDays =
     recentDays.length >= 28
-      ? recentDays.map((day, index): LoadRecoverySourceDay => ({
-          date: day.date,
-          zone2Minutes: day.zone2Minutes,
-          cardioMinutes: day.cardioMinutes,
-          peakMinutes: day.peakMinutes,
-          sleepScore: day.sleepScore,
-          restingHeartRate: day.restingHeartRate,
-          hrvRmssd: index % 3 === 0 ? null : 38 + (index % 5) * 2,
-        }))
-      : buildSyntheticDemoSourceDays(today);
+      ? mapDemoDaysToSourceDays(recentDays)
+      : [
+          ...buildSyntheticDemoSourceDays(
+            subDays(new Date(`${recentDays[0].date}T00:00:00.000Z`), 42 - recentDays.length),
+            42 - recentDays.length,
+          ),
+          ...mapDemoDaysToSourceDays(recentDays, 42 - recentDays.length),
+        ];
 
   return buildLoadRecoveryChartPayloadFromDays(sourceDays);
 }
