@@ -220,14 +220,14 @@ describe("recovery component scoring", () => {
     ).toBe(70);
   });
 
-  it("uses sleep score when sleep and HRV are present but RHR is missing", () => {
+  it("blends sleep and HRV when RHR is missing", () => {
     expect(
       combineRecoveryScore({
         sleepScore: 83,
         rhrScore: null,
         hrvScore: 91,
       }),
-    ).toBe(83);
+    ).toBe(85.8);
   });
 
   it("returns null when all recovery components are missing", () => {
@@ -263,7 +263,7 @@ describe("buildLoadRecoveryChartPayloadFromDays", () => {
     expect(payload.points).toHaveLength(28);
     expect(payload.summary).toEqual({
       avgLoad7d: 40,
-      avgRecovery7d: 90,
+      avgRecovery7d: 93.5,
       highestLoadDate: "2026-03-28",
       highestLoadValue: 70,
       recoveryCoverage: "full",
@@ -293,6 +293,9 @@ describe("buildLoadRecoveryChartPayloadFromDays", () => {
     const payload = buildLoadRecoveryChartPayloadFromDays(history);
 
     expect(payload.state).toBe("empty");
+    if (payload.state !== "empty") {
+      throw new Error("Expected an empty payload");
+    }
     expect(payload.reason).toContain("Need at least 7 recent recovery days");
     expect(payload.points).toHaveLength(28);
   });

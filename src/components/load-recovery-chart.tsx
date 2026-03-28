@@ -169,6 +169,13 @@ export function LoadRecoveryChart({ payload }: Props) {
         </span>
       </div>
 
+      {payload.summary.avgRecovery7d === null ? (
+        <p className="mt-4 text-xs text-slate-600">
+          Recent recovery summary unavailable. This chart still includes older recovery points from
+          the 28-day window.
+        </p>
+      ) : null}
+
       <div className="soft-subcard mt-4 rounded-2xl p-4">
         <div className="grid gap-4">
           <div>

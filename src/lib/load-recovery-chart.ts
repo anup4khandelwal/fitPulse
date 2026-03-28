@@ -123,6 +123,9 @@ export function combineRecoveryScore({
   if (sleepScore !== null && rhrScore !== null) {
     return round1(sleepScore * 0.65 + rhrScore * 0.35);
   }
+  if (sleepScore !== null && hrvScore !== null) {
+    return round1(sleepScore * 0.65 + hrvScore * 0.35);
+  }
   if (rhrScore !== null && hrvScore !== null) {
     return round1(rhrScore * 0.5 + hrvScore * 0.5);
   }
