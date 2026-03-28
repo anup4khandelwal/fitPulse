@@ -1,6 +1,7 @@
 import { AlertsFeed } from "@/components/alerts-feed";
 import { DashboardCalendar } from "@/components/dashboard-calendar";
 import { GoalsCoaching } from "@/components/goals-coaching";
+import { LoadRecoveryChart } from "@/components/load-recovery-chart";
 import { ConditioningInsights } from "@/components/conditioning-insights";
 import { RhrZone2Insights } from "@/components/rhr-zone2-insights";
 import { RecoverySignals } from "@/components/recovery-signals";
@@ -22,6 +23,10 @@ import { buildDemoSleepInsights, getSleepInsights } from "@/lib/sleep-insights";
 import { buildDemoStepInsights, getStepInsights } from "@/lib/steps-insights";
 import { buildDemoRhrZone2Insights, getRhrZone2Insights } from "@/lib/rhr-zone2-insights";
 import { buildDemoConditioningInsights, getConditioningInsights } from "@/lib/conditioning-insights";
+import {
+  buildDemoLoadRecoveryChartPayload,
+  getLoadRecoveryChartPayload,
+} from "@/lib/load-recovery-chart";
 import { buildDemoRecoverySignals, getRecoverySignals } from "@/lib/recovery-signals";
 
 type HomeProps = {
@@ -50,6 +55,9 @@ export default async function Home({ searchParams }: HomeProps) {
   const conditioningInsights = isDemoMode
     ? buildDemoConditioningInsights(payload.days)
     : await getConditioningInsights(user.id);
+  const loadRecoveryPayload = isDemoMode
+    ? buildDemoLoadRecoveryChartPayload(payload.days)
+    : await getLoadRecoveryChartPayload(user.id, goals.avgSleepTargetHours, goals.sleepScoreMode);
   const recoverySignals = isDemoMode ? buildDemoRecoverySignals(payload.days) : await getRecoverySignals(user.id);
   const alerts = await listRecentAlerts(user.id, 8);
 
@@ -79,6 +87,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <RhrZone2Insights payload={rhrZone2Insights} />
       <ConditioningInsights payload={conditioningInsights} />
       <RecoverySignals payload={recoverySignals} />
+      <LoadRecoveryChart payload={loadRecoveryPayload} />
       <AlertsFeed alerts={alerts} />
       <TrendCards payload={trendPayload} />
       <DashboardCalendar payload={payload} isDemo={isDemoMode} />
