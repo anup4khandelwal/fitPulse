@@ -32,13 +32,29 @@ export function scoreRestingHeartRate(
   currentRhr: number | null,
   baselineRhr: number | null,
 ) {
-  if (currentRhr === null || baselineRhr === null || baselineRhr <= 0) return null;
+  if (
+    currentRhr === null ||
+    baselineRhr === null ||
+    !Number.isFinite(currentRhr) ||
+    !Number.isFinite(baselineRhr) ||
+    baselineRhr <= 0
+  ) {
+    return null;
+  }
   const deltaRatio = (currentRhr - baselineRhr) / baselineRhr;
   return round1(clamp(0, 100 - deltaRatio * 250, 100));
 }
 
 export function scoreHrv(currentHrv: number | null, baselineHrv: number | null) {
-  if (currentHrv === null || baselineHrv === null || baselineHrv <= 0) return null;
+  if (
+    currentHrv === null ||
+    baselineHrv === null ||
+    !Number.isFinite(currentHrv) ||
+    !Number.isFinite(baselineHrv) ||
+    baselineHrv <= 0
+  ) {
+    return null;
+  }
   const deltaRatio = (currentHrv - baselineHrv) / baselineHrv;
   return round1(clamp(0, 100 + deltaRatio * 250, 100));
 }
