@@ -43,23 +43,49 @@ export default async function Home({ searchParams }: HomeProps) {
   const payload = isDemoMode
     ? buildDemoCalendarPayload(month, goals.avgSleepTargetHours, goals.sleepScoreMode)
     : await getCalendarPayload(month, goals.avgSleepTargetHours, goals.sleepScoreMode);
-  const trendPayload = isDemoMode ? buildDemoTrendPayload() : await getTrendPayload(user.id);
   const goalsPayload = buildGoalsPayload(payload.weeklySummary, goals);
-  const sleepInsights = isDemoMode
-    ? buildDemoSleepInsights(payload.days, goals.avgSleepTargetHours, goals.sleepScoreMode)
-    : await getSleepInsights(user.id, goals.avgSleepTargetHours, goals.sleepScoreMode);
-  const stepInsights = isDemoMode
-    ? buildDemoStepInsights(payload.days, goals.avgStepsTarget)
-    : await getStepInsights(user.id, goals.avgStepsTarget);
-  const rhrZone2Insights = isDemoMode ? buildDemoRhrZone2Insights() : await getRhrZone2Insights(user.id);
-  const conditioningInsights = isDemoMode
-    ? buildDemoConditioningInsights(payload.days)
-    : await getConditioningInsights(user.id);
-  const loadRecoveryPayload = isDemoMode
-    ? buildDemoLoadRecoveryChartPayload(payload.days)
-    : await getLoadRecoveryChartPayload(user.id, goals.avgSleepTargetHours, goals.sleepScoreMode);
-  const recoverySignals = isDemoMode ? buildDemoRecoverySignals(payload.days) : await getRecoverySignals(user.id);
-  const alerts = await listRecentAlerts(user.id, 8);
+  const trendPayloadPromise = isDemoMode
+    ? Promise.resolve(buildDemoTrendPayload())
+    : getTrendPayload(user.id);
+  const sleepInsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoSleepInsights(payload.days, goals.avgSleepTargetHours, goals.sleepScoreMode))
+    : getSleepInsights(user.id, goals.avgSleepTargetHours, goals.sleepScoreMode);
+  const stepInsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoStepInsights(payload.days, goals.avgStepsTarget))
+    : getStepInsights(user.id, goals.avgStepsTarget);
+  const rhrZone2InsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoRhrZone2Insights())
+    : getRhrZone2Insights(user.id);
+  const conditioningInsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoConditioningInsights(payload.days))
+    : getConditioningInsights(user.id);
+  const loadRecoveryPayloadPromise = isDemoMode
+    ? Promise.resolve(buildDemoLoadRecoveryChartPayload(payload.days))
+    : getLoadRecoveryChartPayload(user.id, goals.avgSleepTargetHours, goals.sleepScoreMode);
+  const recoverySignalsPromise = isDemoMode
+    ? Promise.resolve(buildDemoRecoverySignals(payload.days))
+    : getRecoverySignals(user.id);
+  const alertsPromise = listRecentAlerts(user.id, 8);
+
+  const [
+    trendPayload,
+    sleepInsights,
+    stepInsights,
+    rhrZone2Insights,
+    conditioningInsights,
+    loadRecoveryPayload,
+    recoverySignals,
+    alerts,
+  ] = await Promise.all([
+    trendPayloadPromise,
+    sleepInsightsPromise,
+    stepInsightsPromise,
+    rhrZone2InsightsPromise,
+    conditioningInsightsPromise,
+    loadRecoveryPayloadPromise,
+    recoverySignalsPromise,
+    alertsPromise,
+  ]);
 
   return (
     <div className="space-y-5">
