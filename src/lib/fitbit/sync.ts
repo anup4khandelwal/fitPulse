@@ -1,4 +1,4 @@
-import { addDays, parseISO } from "date-fns";
+import { addDays, format, parseISO } from "date-fns";
 
 import { dateKeyToUtcDate, enumerateDateKeys } from "@/lib/date";
 import { FitbitApiError, fitbitFetchWithAutoRefresh } from "@/lib/fitbit/client";
@@ -10,198 +10,355 @@ type SyncResult = {
   rateLimited: boolean;
 };
 
-type HeartZone = {
-  name: string;
-  minutes: number;
+// ── Google Health API response types ─────────────────────────────────────────
+
+type HealthDataPointsResponse<T> = {
+  dataPoints?: T[];
+  nextPageToken?: string;
 };
 
-type FitbitActivitySummary = {
-  summary?: {
-    steps?: number;
-    sedentaryMinutes?: number;
-    veryActiveMinutes?: number;
-    fairlyActiveMinutes?: number;
-    lightlyActiveMinutes?: number;
-    caloriesOut?: number;
+type HealthStepsDataPoint = {
+  steps?: { interval?: Interval; count?: string | number };
+};
+
+type HealthActiveZoneMinutesDataPoint = {
+  activeZoneMinutes?: {
+    interval?: Interval;
+    fatBurnActiveZoneMinutes?: string | number;
+    cardioActiveZoneMinutes?: string | number;
+    peakActiveZoneMinutes?: string | number;
   };
 };
 
-type FitbitSleepResponse = {
-  summary?: {
-    totalMinutesAsleep?: number;
-    totalTimeInBed?: number;
-    stages?: {
-      deep?: number;
-      light?: number;
-      rem?: number;
-      wake?: number;
-    };
-  };
-  sleep?: Array<{
-    startTime?: string;
-    endTime?: string;
+type HealthSedentaryPeriodDataPoint = {
+  sedentaryPeriod?: { interval?: Interval };
+};
+
+type HealthTotalCaloriesDataPoint = {
+  totalCalories?: { interval?: Interval; caloriesKcal?: number };
+};
+
+type HealthSleepDataPoint = {
+  sleep?: {
+    interval?: Interval;
+    type?: string;
+    stages?: Array<{ startTime?: string; endTime?: string; type?: string }>;
+    summary?: { minutesAsleep?: number; minutesInBed?: number };
     efficiency?: number;
     minutesAsleep?: number;
-    timeInBed?: number;
-  }>;
-};
-
-type FitbitHeartResponse = {
-  "activities-heart"?: Array<{
-    value?: {
-      restingHeartRate?: number;
-      heartRateZones?: HeartZone[];
-    };
-  }>;
-};
-
-type FitbitActivitiesListResponse = {
-  activities?: Array<{
-    activityName?: string;
-    startTime?: string;
-    duration?: number;
-    calories?: number;
-    steps?: number;
-    distance?: number;
-  }>;
-};
-
-type FitbitCardioScoreResponse = {
-  cardioscore?: Array<{
-    value?: {
-      vo2Max?: number;
-      cardioFitnessScore?: number;
-    };
-  }>;
-};
-
-type FitbitHrvResponse = {
-  hrv?: Array<{
-    value?: {
-      dailyRmssd?: number;
-      deepRmssd?: number;
-    };
-  }>;
-};
-
-type FitbitBreathingRateResponse = {
-  br?: Array<{
-    value?: {
-      breathingRate?: number;
-    };
-  }>;
-};
-
-type FitbitSpo2Response = {
-  value?: {
-    avg?: number;
-    min?: number;
-    max?: number;
+    minutesInBed?: number;
   };
 };
 
-type FitbitTempResponse = {
-  tempSkin?: Array<{
-    value?: {
-      nightlyRelative?: number;
-    };
-  }>;
-  tempCore?: Array<{
-    value?: {
-      value?: number;
-    };
-  }>;
+type HealthDailyRhrDataPoint = {
+  dailyRestingHeartRate?: { date?: string; beatsPerMinute?: number };
 };
 
-async function fetchJson<T>(userId: string, path: string) {
-  const response = await fitbitFetchWithAutoRefresh(userId, path);
+type HealthDailyHrzDataPoint = {
+  dailyHeartRateZones?: {
+    date?: string;
+    heartRateZoneDurations?: {
+      outOfRangeTime?: string;
+      fatBurnTime?: string;
+      lightTime?: string;
+      cardioTime?: string;
+      peakTime?: string;
+    };
+  };
+};
 
-  if (response.status === 403) {
-    throw new FitbitApiError("Missing required Fitbit scopes. Reconnect and approve all requested scopes.", 403);
-  }
+type HealthDailyVo2MaxDataPoint = {
+  dailyVo2Max?: { date?: string; vo2Max?: number };
+};
 
-  if (!response.ok) {
-    throw new FitbitApiError(`Fitbit request failed (${response.status})`, response.status);
-  }
+type HealthDailyHrvDataPoint = {
+  dailyHeartRateVariability?: { date?: string; averageHeartRateVariabilityMilliseconds?: number };
+};
 
-  return (await response.json()) as T;
+type HealthDailyRrDataPoint = {
+  dailyRespiratoryRate?: { date?: string; breathsPerMinute?: number };
+};
+
+type HealthDailySpo2DataPoint = {
+  dailyOxygenSaturation?: {
+    date?: string;
+    averagePercentage?: number;
+    minPercentage?: number;
+    maxPercentage?: number;
+  };
+};
+
+type HealthDailyTempDataPoint = {
+  dailySleepTemperatureDerivations?: { date?: string; nightlyTemperatureCelsius?: number };
+};
+
+type HealthExerciseDataPoint = {
+  exercise?: {
+    interval?: Interval;
+    exerciseType?: string;
+    metricsSummary?: {
+      caloriesKcal?: number;
+      distanceMillimiters?: number;
+      steps?: string | number;
+      activeDuration?: string;
+    };
+    displayName?: string;
+    activeDuration?: string;
+  };
+};
+
+type Interval = { startTime?: string; endTime?: string };
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function parseDurationSec(d: string | undefined | null): number {
+  if (!d) return 0;
+  return parseInt(d.replace("s", ""), 10) || 0;
 }
 
-async function fetchOptionalJson<T>(userId: string, path: string) {
+function toNum(v: string | number | undefined | null): number {
+  if (v == null) return 0;
+  return typeof v === "string" ? parseInt(v, 10) || 0 : v;
+}
+
+function intervalMinutes(startTime?: string, endTime?: string): number {
+  if (!startTime || !endTime) return 0;
+  return Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60_000);
+}
+
+// ── Data fetching ─────────────────────────────────────────────────────────────
+
+async function fetchAllDataPoints<T>(userId: string, dataType: string, filter: string): Promise<T[]> {
+  const all: T[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const params = new URLSearchParams({ filter, pageSize: "10000" });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const response = await fitbitFetchWithAutoRefresh(
+      userId,
+      `/v4/users/me/dataTypes/${dataType}/dataPoints?${params}`,
+    );
+
+    if (response.status === 403) {
+      throw new FitbitApiError(
+        "Missing required Google Health API scopes. Reconnect and approve all requested scopes.",
+        403,
+      );
+    }
+
+    if (!response.ok) {
+      throw new FitbitApiError(`Google Health API request failed (${response.status})`, response.status);
+    }
+
+    const body = (await response.json()) as HealthDataPointsResponse<T>;
+    all.push(...(body.dataPoints ?? []));
+    pageToken = body.nextPageToken || undefined;
+  } while (pageToken);
+
+  return all;
+}
+
+async function fetchOptionalDataPoints<T>(userId: string, dataType: string, filter: string): Promise<T[] | null> {
   try {
-    return await fetchJson<T>(userId, path);
+    return await fetchAllDataPoints<T>(userId, dataType, filter);
   } catch (error) {
     if (error instanceof FitbitApiError) {
-      if (error.status === 429) {
-        throw error;
-      }
+      if (error.status === 429) throw error;
       return null;
     }
     return null;
   }
 }
 
+function dayFilter(snakeType: string, dateKey: string): string {
+  const next = format(addDays(parseISO(dateKey), 1), "yyyy-MM-dd");
+  return `${snakeType}.interval.civil_start_time >= "${dateKey}" AND ${snakeType}.interval.civil_start_time < "${next}"`;
+}
+
+function dailyFilter(snakeType: string, dateKey: string): string {
+  return `${snakeType}.date = "${dateKey}"`;
+}
+
+// ── Per-day sync ──────────────────────────────────────────────────────────────
+
 async function syncOneDate(userId: string, dateKey: string) {
-  const [activityRes, sleepRes, heartRes, cardioRes, hrvRes, brRes, spo2Res, skinTempRes, coreTempRes] = await Promise.all([
-    fetchJson<FitbitActivitySummary>(userId, `/1/user/-/activities/date/${dateKey}.json`),
-    fetchJson<FitbitSleepResponse>(userId, `/1.2/user/-/sleep/date/${dateKey}.json`),
-    fetchJson<FitbitHeartResponse>(userId, `/1/user/-/activities/heart/date/${dateKey}/1d.json`),
-    fetchOptionalJson<FitbitCardioScoreResponse>(userId, `/1/user/-/cardioscore/date/${dateKey}.json`),
-    fetchOptionalJson<FitbitHrvResponse>(userId, `/1/user/-/hrv/date/${dateKey}.json`),
-    fetchOptionalJson<FitbitBreathingRateResponse>(userId, `/1/user/-/br/date/${dateKey}.json`),
-    fetchOptionalJson<FitbitSpo2Response>(userId, `/1/user/-/spo2/date/${dateKey}.json`),
-    fetchOptionalJson<FitbitTempResponse>(userId, `/1/user/-/temp/skin/date/${dateKey}.json`),
-    fetchOptionalJson<FitbitTempResponse>(userId, `/1/user/-/temp/core/date/${dateKey}.json`),
+  const next = format(addDays(parseISO(dateKey), 1), "yyyy-MM-dd");
+
+  const [
+    stepsPoints,
+    azminPoints,
+    sedentaryPoints,
+    caloriesPoints,
+    sleepPoints,
+    rhrPoints,
+    hrzPoints,
+    vo2Points,
+    hrvPoints,
+    rrPoints,
+    spo2Points,
+    tempPoints,
+    exercisePoints,
+  ] = await Promise.all([
+    fetchAllDataPoints<HealthStepsDataPoint>(userId, "steps", dayFilter("steps", dateKey)),
+    fetchOptionalDataPoints<HealthActiveZoneMinutesDataPoint>(
+      userId,
+      "active-zone-minutes",
+      dayFilter("active_zone_minutes", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthSedentaryPeriodDataPoint>(
+      userId,
+      "sedentary-period",
+      dayFilter("sedentary_period", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthTotalCaloriesDataPoint>(
+      userId,
+      "total-calories",
+      dayFilter("total_calories", dateKey),
+    ),
+    fetchAllDataPoints<HealthSleepDataPoint>(
+      userId,
+      "sleep",
+      `sleep.civil_end_time >= "${dateKey}" AND sleep.civil_end_time < "${next}"`,
+    ),
+    fetchOptionalDataPoints<HealthDailyRhrDataPoint>(
+      userId,
+      "daily-resting-heart-rate",
+      dailyFilter("daily_resting_heart_rate", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailyHrzDataPoint>(
+      userId,
+      "daily-heart-rate-zones",
+      dailyFilter("daily_heart_rate_zones", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailyVo2MaxDataPoint>(
+      userId,
+      "daily-vo2-max",
+      dailyFilter("daily_vo2_max", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailyHrvDataPoint>(
+      userId,
+      "daily-heart-rate-variability",
+      dailyFilter("daily_heart_rate_variability", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailyRrDataPoint>(
+      userId,
+      "daily-respiratory-rate",
+      dailyFilter("daily_respiratory_rate", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailySpo2DataPoint>(
+      userId,
+      "daily-oxygen-saturation",
+      dailyFilter("daily_oxygen_saturation", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthDailyTempDataPoint>(
+      userId,
+      "daily-sleep-temperature-derivations",
+      dailyFilter("daily_sleep_temperature_derivations", dateKey),
+    ),
+    fetchOptionalDataPoints<HealthExerciseDataPoint>(
+      userId,
+      "exercise",
+      `exercise.interval.civil_start_time >= "${dateKey}" AND exercise.interval.civil_start_time < "${next}"`,
+    ),
   ]);
 
-  const dailyActivity = activityRes.summary;
-  const activeMinutes =
-    (dailyActivity?.veryActiveMinutes ?? 0) +
-    (dailyActivity?.fairlyActiveMinutes ?? 0) +
-    (dailyActivity?.lightlyActiveMinutes ?? 0);
+  // ── Steps ──────────────────────────────────────────────────────────────────
+  const steps = stepsPoints.reduce((sum, p) => sum + toNum(p.steps?.count), 0);
 
-  const sleepMain = sleepRes.sleep?.[0];
-  const sleepSummary = sleepRes.summary;
-  const stages = sleepSummary?.stages;
+  // ── Active zone minutes → activity intensity breakdown ────────────────────
+  let fatBurnMins = 0;
+  let cardioMins = 0;
+  let peakMins = 0;
+  for (const p of azminPoints ?? []) {
+    fatBurnMins += toNum(p.activeZoneMinutes?.fatBurnActiveZoneMinutes);
+    cardioMins += toNum(p.activeZoneMinutes?.cardioActiveZoneMinutes);
+    peakMins += toNum(p.activeZoneMinutes?.peakActiveZoneMinutes);
+  }
+  const activeMinutes = fatBurnMins + cardioMins + peakMins;
 
-  const heartValue = heartRes["activities-heart"]?.[0]?.value;
-  const zones = heartValue?.heartRateZones ?? [];
+  // ── Sedentary minutes ──────────────────────────────────────────────────────
+  const sedentaryMinutes = (sedentaryPoints ?? []).reduce(
+    (sum, p) => sum + intervalMinutes(p.sedentaryPeriod?.interval?.startTime, p.sedentaryPeriod?.interval?.endTime),
+    0,
+  );
 
-  const zone2 = zones.find((z) => z.name === "Fat Burn")?.minutes ?? 0;
-  const cardio = zones.find((z) => z.name === "Cardio")?.minutes ?? 0;
-  const peak = zones.find((z) => z.name === "Peak")?.minutes ?? 0;
-  const outOfRange = zones.find((z) => z.name === "Out of Range")?.minutes ?? 0;
+  // ── Calories ───────────────────────────────────────────────────────────────
+  const caloriesRaw = (caloriesPoints ?? []).reduce((sum, p) => sum + (p.totalCalories?.caloriesKcal ?? 0), 0);
+  const caloriesOut = caloriesRaw > 0 ? Math.round(caloriesRaw) : null;
 
+  // ── Sleep ──────────────────────────────────────────────────────────────────
+  const sleepSession = sleepPoints[0]?.sleep;
+  const stages = sleepSession?.stages ?? [];
+  const hasStages = stages.length > 0;
+
+  const stageMins = (type: string) =>
+    hasStages
+      ? Math.round(stages.filter((s) => s.type === type).reduce((sum, s) => sum + intervalMinutes(s.startTime, s.endTime), 0))
+      : null;
+
+  const deepMinutes = stageMins("DEEP");
+  const lightMinutes = stageMins("LIGHT");
+  const remMinutes = stageMins("REM");
+  const wakeMinutes = stageMins("AWAKE");
+
+  const minutesAsleep =
+    sleepSession?.summary?.minutesAsleep ??
+    sleepSession?.minutesAsleep ??
+    (deepMinutes ?? 0) + (lightMinutes ?? 0) + (remMinutes ?? 0);
+
+  const timeInBed =
+    sleepSession?.summary?.minutesInBed ??
+    sleepSession?.minutesInBed ??
+    intervalMinutes(sleepSession?.interval?.startTime, sleepSession?.interval?.endTime);
+
+  // ── Heart rate zones ───────────────────────────────────────────────────────
+  const restingHeartRate = rhrPoints?.[0]?.dailyRestingHeartRate?.beatsPerMinute ?? null;
+
+  const hrzDurations = hrzPoints?.[0]?.dailyHeartRateZones?.heartRateZoneDurations;
+  // Prefer daily-heart-rate-zones when available; fall back to summed active-zone-minutes
+  const zone2Minutes = hrzDurations
+    ? Math.round(parseDurationSec(hrzDurations.fatBurnTime ?? hrzDurations.lightTime) / 60)
+    : fatBurnMins;
+  const cardioMinutes = hrzDurations ? Math.round(parseDurationSec(hrzDurations.cardioTime) / 60) : cardioMins;
+  const peakMinutes = hrzDurations ? Math.round(parseDurationSec(hrzDurations.peakTime) / 60) : peakMins;
+  const outOfRangeMinutes = hrzDurations
+    ? Math.round(parseDurationSec(hrzDurations.outOfRangeTime) / 60)
+    : null;
+
+  // ── Recovery metrics ───────────────────────────────────────────────────────
+  const vo2Data = vo2Points?.[0]?.dailyVo2Max;
+  const hrvData = hrvPoints?.[0]?.dailyHeartRateVariability;
+  const rrData = rrPoints?.[0]?.dailyRespiratoryRate;
+  const spo2Data = spo2Points?.[0]?.dailyOxygenSaturation;
+  const tempData = tempPoints?.[0]?.dailySleepTemperatureDerivations;
+
+  // ── DB writes ──────────────────────────────────────────────────────────────
   const date = dateKeyToUtcDate(dateKey);
 
-  const cardioValue = cardioRes?.cardioscore?.[0]?.value;
-  const hrvValue = hrvRes?.hrv?.[0]?.value;
-  const brValue = brRes?.br?.[0]?.value;
-  const spo2Value = spo2Res?.value;
-  const skinTempValue = skinTempRes?.tempSkin?.[0]?.value;
-  const coreTempValue = coreTempRes?.tempCore?.[0]?.value;
   const writes: Array<Promise<unknown>> = [
     prisma.dailySummary.upsert({
       where: { userId_date: { userId, date } },
       create: {
         userId,
         date,
-        steps: dailyActivity?.steps ?? 0,
+        steps,
         activeMinutes,
-        sedentaryMinutes: dailyActivity?.sedentaryMinutes ?? 0,
-        lightlyActiveMins: dailyActivity?.lightlyActiveMinutes ?? 0,
-        fairlyActiveMins: dailyActivity?.fairlyActiveMinutes ?? 0,
-        veryActiveMins: dailyActivity?.veryActiveMinutes ?? 0,
-        caloriesOut: dailyActivity?.caloriesOut ?? null,
+        sedentaryMinutes,
+        lightlyActiveMins: fatBurnMins,
+        fairlyActiveMins: cardioMins,
+        veryActiveMins: peakMins,
+        caloriesOut,
       },
       update: {
-        steps: dailyActivity?.steps ?? 0,
+        steps,
         activeMinutes,
-        sedentaryMinutes: dailyActivity?.sedentaryMinutes ?? 0,
-        lightlyActiveMins: dailyActivity?.lightlyActiveMinutes ?? 0,
-        fairlyActiveMins: dailyActivity?.fairlyActiveMinutes ?? 0,
-        veryActiveMins: dailyActivity?.veryActiveMinutes ?? 0,
-        caloriesOut: dailyActivity?.caloriesOut ?? null,
+        sedentaryMinutes,
+        lightlyActiveMins: fatBurnMins,
+        fairlyActiveMins: cardioMins,
+        veryActiveMins: peakMins,
+        caloriesOut,
       },
     }),
     prisma.dailySleep.upsert({
@@ -209,26 +366,26 @@ async function syncOneDate(userId: string, dateKey: string) {
       create: {
         userId,
         date,
-        minutesAsleep: sleepSummary?.totalMinutesAsleep ?? sleepMain?.minutesAsleep ?? 0,
-        timeInBed: sleepSummary?.totalTimeInBed ?? sleepMain?.timeInBed ?? 0,
-        efficiency: sleepMain?.efficiency ?? 0,
-        deepMinutes: stages?.deep ?? null,
-        remMinutes: stages?.rem ?? null,
-        lightMinutes: stages?.light ?? null,
-        wakeMinutes: stages?.wake ?? null,
-        sleepStart: sleepMain?.startTime ? new Date(sleepMain.startTime) : null,
-        sleepEnd: sleepMain?.endTime ? new Date(sleepMain.endTime) : null,
+        minutesAsleep,
+        timeInBed,
+        efficiency: sleepSession?.efficiency ?? 0,
+        deepMinutes,
+        remMinutes,
+        lightMinutes,
+        wakeMinutes,
+        sleepStart: sleepSession?.interval?.startTime ? new Date(sleepSession.interval.startTime) : null,
+        sleepEnd: sleepSession?.interval?.endTime ? new Date(sleepSession.interval.endTime) : null,
       },
       update: {
-        minutesAsleep: sleepSummary?.totalMinutesAsleep ?? sleepMain?.minutesAsleep ?? 0,
-        timeInBed: sleepSummary?.totalTimeInBed ?? sleepMain?.timeInBed ?? 0,
-        efficiency: sleepMain?.efficiency ?? 0,
-        deepMinutes: stages?.deep ?? null,
-        remMinutes: stages?.rem ?? null,
-        lightMinutes: stages?.light ?? null,
-        wakeMinutes: stages?.wake ?? null,
-        sleepStart: sleepMain?.startTime ? new Date(sleepMain.startTime) : null,
-        sleepEnd: sleepMain?.endTime ? new Date(sleepMain.endTime) : null,
+        minutesAsleep,
+        timeInBed,
+        efficiency: sleepSession?.efficiency ?? 0,
+        deepMinutes,
+        remMinutes,
+        lightMinutes,
+        wakeMinutes,
+        sleepStart: sleepSession?.interval?.startTime ? new Date(sleepSession.interval.startTime) : null,
+        sleepEnd: sleepSession?.interval?.endTime ? new Date(sleepSession.interval.endTime) : null,
       },
     }),
     prisma.dailyHeartZones.upsert({
@@ -236,18 +393,18 @@ async function syncOneDate(userId: string, dateKey: string) {
       create: {
         userId,
         date,
-        zone2Minutes: zone2,
-        cardioMinutes: cardio,
-        peakMinutes: peak,
-        outOfRangeMinutes: outOfRange,
-        restingHeartRate: heartValue?.restingHeartRate ?? null,
+        zone2Minutes,
+        cardioMinutes,
+        peakMinutes,
+        outOfRangeMinutes,
+        restingHeartRate: restingHeartRate != null ? Math.round(restingHeartRate) : null,
       },
       update: {
-        zone2Minutes: zone2,
-        cardioMinutes: cardio,
-        peakMinutes: peak,
-        outOfRangeMinutes: outOfRange,
-        restingHeartRate: heartValue?.restingHeartRate ?? null,
+        zone2Minutes,
+        cardioMinutes,
+        peakMinutes,
+        outOfRangeMinutes,
+        restingHeartRate: restingHeartRate != null ? Math.round(restingHeartRate) : null,
       },
     }),
   ];
@@ -261,76 +418,67 @@ async function syncOneDate(userId: string, dateKey: string) {
         create: {
           userId,
           date,
-          cardioFitnessScore: cardioValue?.cardioFitnessScore ?? null,
-          vo2Max: cardioValue?.vo2Max ?? null,
-          hrvRmssd: hrvValue?.dailyRmssd ?? null,
-          hrvDeepRmssd: hrvValue?.deepRmssd ?? null,
-          breathingRate: brValue?.breathingRate ?? null,
-          spo2Avg: spo2Value?.avg ?? null,
-          spo2Min: spo2Value?.min ?? null,
-          spo2Max: spo2Value?.max ?? null,
-          skinTempC: skinTempValue?.nightlyRelative ?? null,
-          coreTempC: coreTempValue?.value ?? null,
+          cardioFitnessScore: null,
+          vo2Max: vo2Data?.vo2Max ?? null,
+          hrvRmssd: hrvData?.averageHeartRateVariabilityMilliseconds ?? null,
+          hrvDeepRmssd: null,
+          breathingRate: rrData?.breathsPerMinute ?? null,
+          spo2Avg: spo2Data?.averagePercentage ?? null,
+          spo2Min: spo2Data?.minPercentage ?? null,
+          spo2Max: spo2Data?.maxPercentage ?? null,
+          skinTempC: tempData?.nightlyTemperatureCelsius ?? null,
+          coreTempC: null,
         },
         update: {
-          cardioFitnessScore: cardioValue?.cardioFitnessScore ?? null,
-          vo2Max: cardioValue?.vo2Max ?? null,
-          hrvRmssd: hrvValue?.dailyRmssd ?? null,
-          hrvDeepRmssd: hrvValue?.deepRmssd ?? null,
-          breathingRate: brValue?.breathingRate ?? null,
-          spo2Avg: spo2Value?.avg ?? null,
-          spo2Min: spo2Value?.min ?? null,
-          spo2Max: spo2Value?.max ?? null,
-          skinTempC: skinTempValue?.nightlyRelative ?? null,
-          coreTempC: coreTempValue?.value ?? null,
+          cardioFitnessScore: null,
+          vo2Max: vo2Data?.vo2Max ?? null,
+          hrvRmssd: hrvData?.averageHeartRateVariabilityMilliseconds ?? null,
+          hrvDeepRmssd: null,
+          breathingRate: rrData?.breathsPerMinute ?? null,
+          spo2Avg: spo2Data?.averagePercentage ?? null,
+          spo2Min: spo2Data?.minPercentage ?? null,
+          spo2Max: spo2Data?.maxPercentage ?? null,
+          skinTempC: tempData?.nightlyTemperatureCelsius ?? null,
+          coreTempC: null,
         },
       }),
     );
   }
 
   await Promise.all(writes);
-
-  await syncActivitiesForDate(userId, dateKey);
+  await syncActivitiesForDate(userId, dateKey, exercisePoints ?? []);
 }
 
-async function syncActivitiesForDate(userId: string, dateKey: string) {
-  const payload = await fetchJson<FitbitActivitiesListResponse>(
-    userId,
-    `/1/user/-/activities/list.json?beforeDate=${dateKey}&sort=asc&offset=0&limit=100`,
-  ).catch(() => ({ activities: [] }));
-
+async function syncActivitiesForDate(userId: string, dateKey: string, exercisePoints: HealthExerciseDataPoint[]) {
   const dayStart = parseISO(`${dateKey}T00:00:00.000Z`);
   const dayEnd = addDays(dayStart, 1);
 
-  const activities = (payload.activities ?? [])
-    .filter((activity) => Boolean(activity.startTime))
-    .map((activity) => {
-      const startTime = new Date(activity.startTime as string);
-      return { startTime, activity };
+  const activities = exercisePoints
+    .filter((p) => Boolean(p.exercise?.interval?.startTime))
+    .map((p) => {
+      const ex = p.exercise!;
+      const startTime = new Date(ex.interval!.startTime!);
+      const durationSec = parseDurationSec(ex.activeDuration ?? ex.metricsSummary?.activeDuration);
+      return { startTime, ex, durationMinutes: Math.max(1, Math.round(durationSec / 60)) };
     })
     .filter(({ startTime }) => startTime >= dayStart && startTime < dayEnd);
 
   await prisma.activityLog.deleteMany({
-    where: {
-      userId,
-      startTime: {
-        gte: dayStart,
-        lt: dayEnd,
-      },
-    },
+    where: { userId, startTime: { gte: dayStart, lt: dayEnd } },
   });
 
   if (activities.length === 0) return;
 
   await prisma.activityLog.createMany({
-    data: activities.map(({ startTime, activity }) => ({
+    data: activities.map(({ startTime, ex, durationMinutes }) => ({
       userId,
       startTime,
-      activityName: activity.activityName ?? "Activity",
-      durationMinutes: Math.max(1, Math.round((activity.duration ?? 0) / 60000)),
-      calories: activity.calories ?? null,
-      distance: activity.distance ?? null,
-      steps: activity.steps ?? null,
+      activityName: ex.displayName ?? ex.exerciseType ?? "Activity",
+      durationMinutes,
+      calories: ex.metricsSummary?.caloriesKcal != null ? Math.round(ex.metricsSummary.caloriesKcal) : null,
+      // API returns millimeters; store as km (1 mm = 0.000001 km)
+      distance: ex.metricsSummary?.distanceMillimiters != null ? ex.metricsSummary.distanceMillimiters / 1_000_000 : null,
+      steps: toNum(ex.metricsSummary?.steps) || null,
     })),
   });
 }
@@ -377,9 +525,5 @@ export async function syncDateRange(
     }
   }
 
-  return {
-    syncedDays,
-    warnings,
-    rateLimited,
-  };
+  return { syncedDays, warnings, rateLimited };
 }

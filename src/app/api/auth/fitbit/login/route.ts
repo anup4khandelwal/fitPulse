@@ -5,19 +5,15 @@ import { NextResponse } from "next/server";
 import { getFitbitEnv, hasFitbitCredentials } from "@/lib/env";
 
 const SCOPES = [
-  "activity",
-  "heartrate",
-  "sleep",
-  "profile",
-  "respiratory_rate",
-  "oxygen_saturation",
-  "temperature",
-  "cardio_fitness",
+  "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+  "https://www.googleapis.com/auth/googlehealth.sleep.readonly",
+  "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+  "https://www.googleapis.com/auth/googlehealth.profile.readonly",
 ];
 
 export async function GET() {
   if (!hasFitbitCredentials()) {
-    return NextResponse.json({ error: "Missing Fitbit env vars" }, { status: 500 });
+    return NextResponse.json({ error: "Missing Google Health API env vars" }, { status: 500 });
   }
 
   const { clientId, redirectUri } = getFitbitEnv();
@@ -29,10 +25,11 @@ export async function GET() {
     scope: SCOPES.join(" "),
     redirect_uri: redirectUri,
     state,
-    expires_in: "31536000",
+    access_type: "offline",
+    prompt: "consent",
   });
 
-  const response = NextResponse.redirect(`https://www.fitbit.com/oauth2/authorize?${params.toString()}`);
+  const response = NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
   response.cookies.set("fitbit_oauth_state", state, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

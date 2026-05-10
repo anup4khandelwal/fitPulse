@@ -2,8 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getOrCreateSingleUser } from "@/lib/dashboard";
 import { getFitbitEnv } from "@/lib/env";
-import { FitbitTokenResponse } from "@/lib/fitbit/client";
+import { fitbitFetch } from "@/lib/fitbit/client";
 import { prisma } from "@/lib/prisma";
+
+type GoogleTokenResponse = {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  refresh_token_expires_in?: number;
+  scope: string;
+  token_type: "Bearer";
+};
+
+type HealthIdentityResponse = {
+  name: string;
+  legacyUserId: string;
+  healthUserId: string;
+};
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -15,35 +30,39 @@ export async function GET(req: NextRequest) {
   }
 
   const { clientId, clientSecret, redirectUri } = getFitbitEnv();
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   const body = new URLSearchParams({
     code,
+    client_id: clientId,
+    client_secret: clientSecret,
     grant_type: "authorization_code",
     redirect_uri: redirectUri,
   });
 
-  const tokenResponse = await fetch("https://api.fitbit.com/oauth2/token", {
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
     cache: "no-store",
   });
 
   if (!tokenResponse.ok) {
-    return NextResponse.json({ error: "Fitbit token exchange failed" }, { status: 400 });
+    return NextResponse.json({ error: "Google token exchange failed" }, { status: 400 });
   }
 
-  const tokenJson = (await tokenResponse.json()) as FitbitTokenResponse;
+  const tokenJson = (await tokenResponse.json()) as GoogleTokenResponse;
+
+  const identityRes = await fitbitFetch(tokenJson.access_token, "/v4/users/me/identity");
+  const identity = identityRes.ok ? ((await identityRes.json()) as HealthIdentityResponse) : null;
+
   const user = await getOrCreateSingleUser();
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { fitbitUserId: tokenJson.user_id },
-  });
+  if (identity?.legacyUserId) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { fitbitUserId: identity.legacyUserId },
+    });
+  }
 
   await prisma.fitbitAuth.upsert({
     where: { userId: user.id },
