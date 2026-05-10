@@ -12,22 +12,29 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "mcp:playwright": "npx @playwright/mcp"
+    "mcp:playwright": "npx @playwright/mcp",
+    "mcp": "tsx mcp-server/index.ts",
+    "fitpulse": "tsx cli/index.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-better-sqlite3": "^7.4.1",
     "@prisma/client": "^7.4.1",
     "better-sqlite3": "^12.6.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
     "date-fns": "^4.1.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "tsx": "^4.21.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.68",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
