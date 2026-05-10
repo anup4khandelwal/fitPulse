@@ -87,12 +87,12 @@ export function SettingsPanel({ connected, goals, alertPrefs, lastSync }: Settin
     });
 
     if (response.ok) {
-      setMessage("Fitbit disconnected. Tokens removed locally.");
+      setMessage("Google Health disconnected. Tokens removed locally.");
       router.refresh();
       return;
     }
 
-    setMessage("Unable to disconnect Fitbit.");
+    setMessage("Unable to disconnect Google Health.");
   }
 
   async function onSaveGoals() {
@@ -160,7 +160,7 @@ export function SettingsPanel({ connected, goals, alertPrefs, lastSync }: Settin
 
   return (
     <div className="soft-card interactive-card fade-up d-2 space-y-4 rounded-3xl p-5">
-      <h2 className="text-xl font-semibold text-slate-900">Fitbit Connection</h2>
+      <h2 className="text-xl font-semibold text-slate-900">Google Health Connection</h2>
 
       <div className="soft-subcard interactive-subcard rounded-2xl p-3">
         <p className="text-sm text-slate-700">Status: {connected ? "Connected" : "Not connected"}</p>
@@ -325,7 +325,7 @@ export function SettingsPanel({ connected, goals, alertPrefs, lastSync }: Settin
           href="/api/auth/fitbit/login"
           className="rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-teal-700 hover:to-cyan-700"
         >
-          Connect Fitbit
+          Connect Google Health
         </a>
 
         <button

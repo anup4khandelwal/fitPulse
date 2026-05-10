@@ -22,13 +22,13 @@ export default async function SettingsPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">Preferences</p>
         <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Connect Fitbit OAuth, trigger manual sync, or disconnect local tokens.
+          Connect Google Health, trigger manual sync, or disconnect local tokens.
         </p>
       </div>
 
       {isDemoMode && !auth ? (
         <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-          Demo mode is enabled. Connect Fitbit and sync to replace mock data with real data.
+          Demo mode is enabled. Connect Google Health and sync to replace mock data with real data.
         </div>
       ) : null}
 
