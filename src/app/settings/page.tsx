@@ -19,9 +19,9 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-5">
       <div className="hero-card fade-up d-1 rounded-3xl p-6 md:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">Preferences</p>
-        <h1 className="mt-2 text-3xl font-semibold">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-400">Preferences</p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">Settings</h1>
+        <p className="mt-1 text-sm text-slate-400">
           Connect Google Health, trigger manual sync, or disconnect local tokens.
         </p>
       </div>

@@ -20,6 +20,20 @@ model User {
   activityLogs    ActivityLog[]
   syncRuns        SyncRun[]
   alerts          AlertEvent[]
+  weightLogs      WeightLog[]
+}
+
+model WeightLog {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  weightKg    Float
+  bodyFatPct  Float?
+  bmi         Float?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date(sort: Desc)])
 }
 
 model FitbitAuth {

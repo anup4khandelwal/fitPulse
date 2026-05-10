@@ -7,11 +7,11 @@
   --ink-700: #334155;
   --surface-0: #f4f7fb;
   --surface-1: #ffffff;
-  --line-soft: rgba(15, 23, 42, 0.08);
-  --brand-500: #0ea5a4;
-  --brand-600: #0f766e;
-  --brand-700: #155e75;
-  --accent-500: #0ea5e9;
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --brand-500: #2dd4bf;
+  --brand-600: #14b8a6;
+  --brand-700: #0d9488;
+  --accent-500: #38bdf8;
 }
 
 body {
@@ -28,36 +28,55 @@ h4 {
   font-family: var(--font-display), sans-serif;
 }
 
+/* ── App shell ──────────────────────────────────────────────────────────────── */
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 8% -8%, rgba(14, 165, 164, 0.24), transparent 30%),
-    radial-gradient(circle at 95% 0%, rgba(14, 165, 233, 0.2), transparent 26%),
-    linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+    radial-gradient(ellipse at 15% 0%, rgba(45, 212, 191, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 0%, rgba(56, 189, 248, 0.10) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(14, 165, 164, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #060d1a 0%, #080e1b 60%, #060b16 100%);
 }
 
+/* ── Cards ──────────────────────────────────────────────────────────────────── */
 .hero-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(240, 249, 255, 0.88));
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, rgba(10, 18, 40, 0.95) 0%, rgba(13, 22, 52, 0.92) 100%);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.08),
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(14, 165, 164, 0.08);
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.06) 0%, transparent 50%, rgba(56, 189, 248, 0.04) 100%);
+  pointer-events: none;
 }
 
 .hero-card::after {
   content: "";
   position: absolute;
-  inset: auto -20% -65% auto;
-  width: 320px;
-  height: 320px;
+  right: -10%;
+  bottom: -55%;
+  width: 380px;
+  height: 380px;
   border-radius: 9999px;
-  background: radial-gradient(circle at center, rgba(14, 165, 164, 0.25), transparent 70%);
+  background: radial-gradient(circle at center, rgba(45, 212, 191, 0.22), transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
 }
 
 .soft-card {
-  border: 1px solid var(--line-soft);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   background: var(--surface-1);
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.38),
+    0 1px 0 rgba(255, 255, 255, 0.06);
   transition:
     transform 240ms ease,
     box-shadow 240ms ease,
@@ -65,61 +84,50 @@ h4 {
 }
 
 .soft-subcard {
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: linear-gradient(180deg, #fcfdff 0%, #f8fbff 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   transition:
     transform 220ms ease,
     box-shadow 220ms ease,
     border-color 220ms ease;
 }
 
-.fade-up {
-  animation: fade-up 460ms ease-out both;
-}
-
-.d-1 {
-  animation-delay: 70ms;
-}
-
-.d-2 {
-  animation-delay: 130ms;
-}
-
-.d-3 {
-  animation-delay: 190ms;
-}
-
-.d-4 {
-  animation-delay: 250ms;
-}
-
+/* ── Hover states ───────────────────────────────────────────────────────────── */
 .interactive-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(14, 116, 144, 0.22);
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+  transform: translateY(-3px);
+  border-color: rgba(45, 212, 191, 0.28);
+  box-shadow:
+    0 20px 56px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(45, 212, 191, 0.15);
 }
 
 .interactive-subcard:hover {
   transform: translateY(-1px);
-  border-color: rgba(20, 184, 166, 0.32);
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+  border-color: rgba(20, 184, 166, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
+
+/* ── Animations ─────────────────────────────────────────────────────────────── */
+.fade-up {
+  animation: fade-up 460ms ease-out both;
+}
+
+.d-1 { animation-delay: 70ms; }
+.d-2 { animation-delay: 130ms; }
+.d-3 { animation-delay: 190ms; }
+.d-4 { animation-delay: 250ms; }
 
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(90deg, #e8eef6 20%, #f3f7fc 40%, #e8eef6 60%);
+  background: linear-gradient(90deg, #1e293b 20%, #263348 40%, #1e293b 60%);
   background-size: 220% 100%;
   animation: shimmer 1.35s linear infinite;
 }
 
 @keyframes shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -100% 0;
-  }
+  from { background-position: 100% 0; }
+  to   { background-position: -100% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -129,13 +137,13 @@ h4 {
   .sparkline-dot {
     animation: none !important;
   }
-
   .soft-card,
   .soft-subcard {
     transition: none !important;
   }
 }
 
+/* ── Sparkline ──────────────────────────────────────────────────────────────── */
 .sparkline-line {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
@@ -150,29 +158,37 @@ h4 {
 }
 
 @keyframes draw-line {
-  to {
-    stroke-dashoffset: 0;
-  }
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes pop-dot {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Pulse dot (live indicator) ─────────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.live-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #2dd4bf;
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+/* ── Stat number ────────────────────────────────────────────────────────────── */
+.stat-value {
+  font-family: var(--font-display), sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
