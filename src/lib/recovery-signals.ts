@@ -72,13 +72,13 @@ function metric(rows: RecoveryRow[], pick: (row: RecoveryRow) => number | null, 
 }
 
 function buildPayload(rows: RecoveryRow[], dateLabel: string): RecoverySignalsPayload {
-  const cardioFitness = metric(rows, (row) => row.cardioFitnessScore, "score", "Fitbit Cardio Score API");
-  const vo2Max = metric(rows, (row) => row.vo2Max, "ml/kg/min", "Fitbit Cardio Score API");
-  const hrvRmssd = metric(rows, (row) => row.hrvRmssd, "ms", "Fitbit HRV API");
-  const breathingRate = metric(rows, (row) => row.breathingRate, "br/min", "Fitbit Breathing Rate API");
-  const spo2Avg = metric(rows, (row) => row.spo2Avg, "%", "Fitbit SpO2 API");
-  const skinTempC = metric(rows, (row) => row.skinTempC, "C", "Fitbit Skin Temperature API");
-  const coreTempC = metric(rows, (row) => row.coreTempC, "C", "Fitbit Core Temperature API");
+  const cardioFitness = metric(rows, (row) => row.cardioFitnessScore, "score", "Google Health API");
+  const vo2Max = metric(rows, (row) => row.vo2Max, "ml/kg/min", "Google Health API");
+  const hrvRmssd = metric(rows, (row) => row.hrvRmssd, "ms", "Google Health API");
+  const breathingRate = metric(rows, (row) => row.breathingRate, "br/min", "Google Health API");
+  const spo2Avg = metric(rows, (row) => row.spo2Avg, "%", "Google Health API");
+  const skinTempC = metric(rows, (row) => row.skinTempC, "C", "Google Health API");
+  const coreTempC = metric(rows, (row) => row.coreTempC, "C", "Google Health API");
 
   const hasAnyData =
     cardioFitness.value !== null ||
@@ -91,7 +91,7 @@ function buildPayload(rows: RecoveryRow[], dateLabel: string): RecoverySignalsPa
 
   const notes: string[] = [];
   if (!hasAnyData) {
-    notes.push("No premium biomarker data returned yet. Reconnect Fitbit with expanded scopes, then sync recent days.");
+    notes.push("No premium biomarker data returned yet. Reconnect Google Health and sync recent days.");
   }
   if (vo2Max.value !== null && vo2Max.delta7d !== null && vo2Max.delta7d > 0.5) {
     notes.push(`VO2 max improved by ${vo2Max.delta7d.toFixed(1)} over prior week.`);
@@ -103,7 +103,7 @@ function buildPayload(rows: RecoveryRow[], dateLabel: string): RecoverySignalsPa
     notes.push(`Average SpO2 is ${spo2Avg.value}%. Confirm sensor fit and monitor trend.`);
   }
   if (notes.length === 0) {
-    notes.push("Recovery biomarkers are stable based on available Fitbit API data.");
+    notes.push("Recovery biomarkers are stable based on available Google Health API data.");
   }
 
   return {

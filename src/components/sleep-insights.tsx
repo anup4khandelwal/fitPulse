@@ -21,14 +21,14 @@ export function SleepInsights({ payload, mode }: SleepInsightsProps) {
     <div className="soft-card interactive-card fade-up d-2 rounded-3xl p-5">
       <h2 className="text-xl font-semibold text-slate-900">Sleep Insights</h2>
       <p className="mt-1 text-sm text-slate-600">Debt, consistency, stage trends, and smart sleep flags.</p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Fitbit sleep API + derived scoring</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Google Health sleep API + derived scoring</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-5">
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-slate-500">Sleep Score*</p>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-              {mode === "fitbit" ? "Fitbit" : "Recovery"}
+              {mode === "fitbit" ? "Google" : "Recovery"}
             </span>
           </div>
           <p className="mt-1 text-2xl font-semibold text-slate-900">
@@ -38,7 +38,7 @@ export function SleepInsights({ payload, mode }: SleepInsightsProps) {
           <p className="mt-1 text-xs text-slate-600">
             7d avg: {payload.sleepScore.average7d !== null ? `${payload.sleepScore.average7d}/100` : "n/a"}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">*Derived model, not direct Fitbit score API.</p>
+          <p className="mt-1 text-[11px] text-slate-500">*Derived model, not direct Google Health score API.</p>
         </div>
 
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">

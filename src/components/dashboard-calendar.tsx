@@ -160,7 +160,7 @@ function DayDrawer({ day }: { day?: DayDashboard }) {
           <p>Depth (Deep+REM): {day.sleepScoreBreakdown?.depth ?? "-"} / 25</p>
           <p>Restoration: {day.sleepScoreBreakdown?.restoration ?? "-"} / 25</p>
         </div>
-        <p className="mt-2 text-xs text-slate-500">*Derived from Fitbit sleep duration/stage/restoration signals (not a direct Fitbit API score).</p>
+        <p className="mt-2 text-xs text-slate-500">*Derived from Google Health sleep duration/stage/restoration signals (not a direct API score).</p>
       </div>
 
       <div className="soft-subcard mt-4 rounded-2xl p-3">

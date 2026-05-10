@@ -33,7 +33,7 @@ export function RecoverySignals({ payload }: Props) {
   return (
     <div className="soft-card interactive-card fade-up d-3 rounded-3xl p-5">
       <h2 className="text-xl font-semibold text-slate-900">Recovery Signals</h2>
-      <p className="mt-1 text-sm text-slate-600">Premium biomarker endpoints from Fitbit Web API only.</p>
+      <p className="mt-1 text-sm text-slate-600">Premium biomarker endpoints from Google Health API.</p>
       <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Last synced biomarker date: {payload.dateLabel}</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-4">

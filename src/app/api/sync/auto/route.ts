@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const user = await getOrCreateSingleUser();
   const auth = await prisma.fitbitAuth.findUnique({ where: { userId: user.id } });
   if (!auth) {
-    return NextResponse.json({ error: "Fitbit not connected." }, { status: 409 });
+    return NextResponse.json({ error: "Google Health not connected." }, { status: 409 });
   }
 
   const range = getAutoSyncRange(getAutoSyncDays());

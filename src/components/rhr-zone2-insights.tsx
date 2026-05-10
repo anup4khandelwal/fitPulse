@@ -21,7 +21,7 @@ export function RhrZone2Insights({ payload }: Props) {
     <div className="soft-card interactive-card fade-up d-3 rounded-3xl p-5">
       <h2 className="text-xl font-semibold text-slate-900">RHR + Zone2 Insights</h2>
       <p className="mt-1 text-sm text-slate-600">Baseline deviation, readiness, and weekly Zone2 session planner.</p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Fitbit heart-rate zones API + derived readiness</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Google Health heart-rate zones API + derived readiness</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">
