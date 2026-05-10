@@ -107,6 +107,14 @@ type HealthExerciseDataPoint = {
   };
 };
 
+type HealthWeightDataPoint = {
+  weight?: { date?: string; massKg?: number; bmi?: number };
+};
+
+type HealthBodyFatDataPoint = {
+  bodyFat?: { date?: string; percentage?: number };
+};
+
 type Interval = { startTime?: string; endTime?: string };
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -200,6 +208,8 @@ async function syncOneDate(userId: string, dateKey: string) {
     spo2Points,
     tempPoints,
     exercisePoints,
+    weightPoints,
+    bodyFatPoints,
   ] = await Promise.all([
     fetchAllDataPoints<HealthStepsDataPoint>(userId, "steps", dayFilter("steps", dateKey)),
     fetchOptionalDataPoints<HealthActiveZoneMinutesDataPoint>(
@@ -262,6 +272,8 @@ async function syncOneDate(userId: string, dateKey: string) {
       "exercise",
       `exercise.interval.civil_start_time >= "${dateKey}" AND exercise.interval.civil_start_time < "${next}"`,
     ),
+    fetchOptionalDataPoints<HealthWeightDataPoint>(userId, "weight", dailyFilter("weight", dateKey)),
+    fetchOptionalDataPoints<HealthBodyFatDataPoint>(userId, "body-fat", dailyFilter("body_fat", dateKey)),
   ]);
 
   // ── Steps ──────────────────────────────────────────────────────────────────
@@ -441,6 +453,20 @@ async function syncOneDate(userId: string, dateKey: string) {
           skinTempC: tempData?.nightlyTemperatureCelsius ?? null,
           coreTempC: null,
         },
+      }),
+    );
+  }
+
+  const weightKg = weightPoints?.[0]?.weight?.massKg ?? null;
+  const bmi = weightPoints?.[0]?.weight?.bmi ?? null;
+  const bodyFatPct = bodyFatPoints?.[0]?.bodyFat?.percentage ?? null;
+
+  if (weightKg != null) {
+    writes.push(
+      prisma.weightLog.upsert({
+        where: { userId_date: { userId, date } },
+        create: { userId, date, weightKg, bmi, bodyFatPct },
+        update: { weightKg, bmi, bodyFatPct },
       }),
     );
   }

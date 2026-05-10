@@ -28,6 +28,8 @@ import {
   getLoadRecoveryChartPayload,
 } from "@/lib/load-recovery-chart";
 import { buildDemoRecoverySignals, getRecoverySignals } from "@/lib/recovery-signals";
+import { buildDemoWeightInsights, getWeightInsights } from "@/lib/weight-insights";
+import { WeightWidget } from "@/components/weight-widget";
 
 type HomeProps = {
   searchParams: Promise<{ month?: string }>;
@@ -65,6 +67,9 @@ export default async function Home({ searchParams }: HomeProps) {
   const recoverySignalsPromise = isDemoMode
     ? Promise.resolve(buildDemoRecoverySignals(payload.days))
     : getRecoverySignals(user.id);
+  const weightInsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoWeightInsights())
+    : getWeightInsights(user.id);
   const alertsPromise = listRecentAlerts(user.id, 8);
 
   const [
@@ -75,6 +80,7 @@ export default async function Home({ searchParams }: HomeProps) {
     conditioningInsights,
     loadRecoveryPayload,
     recoverySignals,
+    weightInsights,
     alerts,
   ] = await Promise.all([
     trendPayloadPromise,
@@ -84,6 +90,7 @@ export default async function Home({ searchParams }: HomeProps) {
     conditioningInsightsPromise,
     loadRecoveryPayloadPromise,
     recoverySignalsPromise,
+    weightInsightsPromise,
     alertsPromise,
   ]);
 
@@ -128,6 +135,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <RhrZone2Insights payload={rhrZone2Insights} />
       <ConditioningInsights payload={conditioningInsights} />
       <RecoverySignals payload={recoverySignals} />
+      <WeightWidget payload={weightInsights} />
       <LoadRecoveryChart payload={loadRecoveryPayload} />
       <AlertsFeed alerts={alerts} />
       <TrendCards payload={trendPayload} />
