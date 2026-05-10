@@ -12,6 +12,19 @@ npx tsc --noEmit     # type-check without emitting
 npx prisma generate  # regenerate Prisma client after schema changes
 npx prisma migrate dev --name <name>  # create + apply a new migration
 npx prisma migrate deploy             # apply existing migrations (CI)
+
+# CLI — query health data from the terminal
+npm run fitpulse -- summary                          # last 7 days steps/calories/active mins
+npm run fitpulse -- sleep --from 2026-05-01          # sleep since May 1
+npm run fitpulse -- zones --format json              # heart rate zones as JSON
+npm run fitpulse -- recovery --format csv            # recovery biomarkers as CSV
+npm run fitpulse -- weight                           # last 30 days weight/body fat/BMI
+npm run fitpulse -- activities                       # exercise sessions last 7 days
+npm run fitpulse -- status                           # last sync run status
+npm run fitpulse -- sync --from 2026-05-01 --to 2026-05-10  # trigger sync (app must run)
+
+# MCP server — exposes 8 tools for AI agents (Claude Code, Claude Desktop, etc.)
+npm run mcp          # start MCP server over stdio
 ```
 
 ## Architecture
@@ -77,6 +90,27 @@ SYNC_CRON_SECRET=          # protects POST /api/sync/auto
 AUTO_SYNC_DAYS="3"         # days back to sync in auto mode
 WEBHOOK_SECRET=            # optional, validates Google Health webhook calls
 ```
+
+## MCP Server & CLI
+
+Both live in `mcp-server/` and `cli/` and share a data layer (`mcp-server/db.ts` + `mcp-server/queries.ts`) that reads directly from the SQLite database using the same `@prisma/adapter-better-sqlite3` setup as the Next.js app. They do **not** depend on any Next.js runtime.
+
+### MCP server tools (`mcp-server/index.ts`)
+| Tool | Description |
+|------|-------------|
+| `get_daily_summary` | Steps, active/sedentary minutes, calories |
+| `get_sleep` | Duration, efficiency, deep/REM/light/wake stages |
+| `get_heart_rate_zones` | Zone 2, cardio, peak minutes + resting HR |
+| `get_recovery_signals` | VO2 max, HRV, SpO2, breathing rate, skin temp |
+| `get_weight` | Weight (kg), body fat %, BMI — 30-day default |
+| `get_activities` | Exercise sessions with duration/calories/distance |
+| `get_sync_status` | Last sync run status |
+| `sync_data` | Trigger sync via app API (requires app running) |
+
+MCP config is in `.mcp.json` — the `fitpulse` server entry starts `npm run mcp` automatically.
+
+### CLI commands (`cli/index.ts`)
+Supports `--from`/`--to` date flags and `--format table|json|csv|md` on every command.
 
 ## CI
 
