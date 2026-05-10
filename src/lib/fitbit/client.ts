@@ -3,13 +3,16 @@ import { FitbitAuth } from "@prisma/client";
 import { getFitbitEnv } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 
+export const HEALTH_API_BASE = "https://health.googleapis.com";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+
 type TokenResponse = {
   access_token: string;
   expires_in: number;
   refresh_token: string;
+  refresh_token_expires_in?: number;
   scope: string;
   token_type: "Bearer";
-  user_id: string;
 };
 
 export class FitbitApiError extends Error {
@@ -25,19 +28,17 @@ export class FitbitApiError extends Error {
 
 export async function fitbitRefresh(refreshToken: string): Promise<TokenResponse> {
   const { clientId, clientSecret } = getFitbitEnv();
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
     grant_type: "refresh_token",
     refresh_token: refreshToken,
   });
 
-  const response = await fetch("https://api.fitbit.com/oauth2/token", {
+  const response = await fetch(GOOGLE_TOKEN_URL, {
     method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
     cache: "no-store",
   });
@@ -50,12 +51,12 @@ export async function fitbitRefresh(refreshToken: string): Promise<TokenResponse
 }
 
 export async function fitbitFetch(accessToken: string, path: string, init?: RequestInit) {
-  const response = await fetch(`https://api.fitbit.com${path}`, {
+  const response = await fetch(`${HEALTH_API_BASE}${path}`, {
     ...init,
     headers: {
       ...(init?.headers ?? {}),
       Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      Accept: "application/json",
     },
     cache: "no-store",
   });
@@ -63,7 +64,7 @@ export async function fitbitFetch(accessToken: string, path: string, init?: Requ
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
     throw new FitbitApiError(
-      "Fitbit rate limit reached. Try syncing again shortly.",
+      "Google Health API rate limit reached. Try again shortly.",
       429,
       retryAfter ? Number(retryAfter) : undefined,
     );
@@ -76,7 +77,7 @@ export async function ensureValidToken(userId: string): Promise<{ accessToken: s
   const auth = await prisma.fitbitAuth.findUnique({ where: { userId } });
 
   if (!auth) {
-    throw new FitbitApiError("Fitbit is not connected", 401);
+    throw new FitbitApiError("Google Health API is not connected", 401);
   }
 
   const now = Date.now();
@@ -111,7 +112,7 @@ export async function fitbitFetchWithAutoRefresh(userId: string, path: string, i
 
   const auth = await prisma.fitbitAuth.findUnique({ where: { userId } });
   if (!auth) {
-    throw new FitbitApiError("Fitbit token not found", 401);
+    throw new FitbitApiError("Google Health API token not found", 401);
   }
 
   const refreshed = await fitbitRefresh(auth.refreshToken);

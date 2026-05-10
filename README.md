@@ -17,12 +17,12 @@ Most dashboards stop at vanity metrics. fitPulse is designed for:
 - Daily readiness and recovery context
 - Zone 2 consistency and intensity balance (80/20)
 - Sleep quality and trends
-- Weekly coaching signals from real Fitbit API data
+- Weekly coaching signals from real health data
 - A clean, modern UX for daily use
 
 ## Core Features
 
-- OAuth Fitbit integration
+- OAuth Google Health integration (Google Health API v4)
 - Calendar-based health dashboard
 - Sleep insights + derived sleep score breakdown
 - Step insights + pacing + streaks
@@ -37,7 +37,7 @@ Most dashboards stop at vanity metrics. fitPulse is designed for:
 - Next.js 16 (App Router)
 - TypeScript
 - Prisma + SQLite
-- Fitbit Web API
+- Google Health API v4
 
 ## Quick Start
 
@@ -89,28 +89,45 @@ Never commit real secrets. Use your own values locally:
 
 ```env
 DATABASE_URL="file:./dev.db"
-FITBIT_CLIENT_ID="your_client_id"
-FITBIT_CLIENT_SECRET="your_client_secret"
-FITBIT_REDIRECT_URI="http://localhost:3000/api/auth/fitbit/callback"
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/fitbit/callback"
 DEMO_MODE="false"
 SYNC_CRON_SECRET="replace_with_long_random_secret"
 AUTO_SYNC_DAYS="3"
 ```
 
-## Fitbit API Coverage
+## Google Health API Setup
 
-fitPulse uses Fitbit APIs for:
+1. Go to [Google Cloud Console](https://console.cloud.google.com) and create a project
+2. Enable the **Google Health API**
+3. Create OAuth credentials (Web application) with the redirect URI above
+4. On the OAuth consent screen, add these scopes:
+   - `googlehealth.activity_and_fitness.readonly`
+   - `googlehealth.sleep.readonly`
+   - `googlehealth.health_metrics_and_measurements.readonly`
+   - `googlehealth.profile.readonly`
+5. Add your Google account as a test user while in External/testing mode
 
-- Daily activity summary (steps, active/sedentary, calories)
-- Sleep logs + stages
-- Heart rate zones + resting heart rate
-- Cardio fitness / VO2 max
-- HRV
-- Breathing rate
-- SpO2
-- Temperature (when available)
+## Google Health API Coverage
 
-Some metrics are intentionally labeled **Derived** where Fitbit does not provide a direct score endpoint.
+fitPulse uses the Google Health API v4 for:
+
+- Steps (aggregated from interval data points)
+- Active zone minutes (fat burn / cardio / peak)
+- Sedentary periods
+- Total calories
+- Sleep sessions + stages (deep, light, REM, awake)
+- Daily resting heart rate
+- Daily heart rate zones
+- Daily VO2 max
+- Daily HRV (average RMSSD)
+- Daily respiratory rate
+- Daily oxygen saturation (SpO2)
+- Daily sleep temperature derivations
+- Exercise sessions (activity log)
+
+Some metrics are intentionally labeled **Derived** where the API does not provide a direct score endpoint.
 
 ## Roadmap
 
@@ -146,7 +163,7 @@ If fitPulse helps you, please:
 
 - Do not commit `.env` files or production tokens
 - Revoke and rotate tokens if leaked
-- Use separate Fitbit apps for local and production where possible
+- Use separate Google Cloud projects for local and production where possible
 
 ## License
 
