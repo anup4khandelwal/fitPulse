@@ -28,6 +28,8 @@ import {
   getLoadRecoveryChartPayload,
 } from "@/lib/load-recovery-chart";
 import { buildDemoRecoverySignals, getRecoverySignals } from "@/lib/recovery-signals";
+import { buildDemoWeightInsights, getWeightInsights } from "@/lib/weight-insights";
+import { WeightWidget } from "@/components/weight-widget";
 
 type HomeProps = {
   searchParams: Promise<{ month?: string }>;
@@ -65,6 +67,9 @@ export default async function Home({ searchParams }: HomeProps) {
   const recoverySignalsPromise = isDemoMode
     ? Promise.resolve(buildDemoRecoverySignals(payload.days))
     : getRecoverySignals(user.id);
+  const weightInsightsPromise = isDemoMode
+    ? Promise.resolve(buildDemoWeightInsights())
+    : getWeightInsights(user.id);
   const alertsPromise = listRecentAlerts(user.id, 8);
 
   const [
@@ -75,6 +80,7 @@ export default async function Home({ searchParams }: HomeProps) {
     conditioningInsights,
     loadRecoveryPayload,
     recoverySignals,
+    weightInsights,
     alerts,
   ] = await Promise.all([
     trendPayloadPromise,
@@ -84,27 +90,43 @@ export default async function Home({ searchParams }: HomeProps) {
     conditioningInsightsPromise,
     loadRecoveryPayloadPromise,
     recoverySignalsPromise,
+    weightInsightsPromise,
     alertsPromise,
   ]);
 
   return (
     <div className="space-y-5">
-      <div className="hero-card fade-up d-1 rounded-3xl p-6 md:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">Dashboard</p>
-        <h1 className="mt-2 text-3xl font-semibold md:text-4xl">Daily Health Calendar</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600 md:text-base">
-          Track steps, sleep, exercise, and Zone 2 (Fat Burn) minutes in a month view.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-          <span className="rounded-full bg-white/80 px-3 py-1 text-teal-700 ring-1 ring-teal-100">
-            {payload.weeklySummary.totalZone2Minutes}m zone 2 this week
-          </span>
-          <span className="rounded-full bg-white/80 px-3 py-1 text-sky-700 ring-1 ring-sky-100">
-            {payload.weeklySummary.averageSleepHours.toFixed(1)}h avg sleep
-          </span>
-          <span className="rounded-full bg-white/80 px-3 py-1 text-cyan-700 ring-1 ring-cyan-100">
-            {payload.weeklySummary.averageSteps.toLocaleString()} avg steps
-          </span>
+      <div className="hero-card fade-up d-1 rounded-3xl p-6 md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-400">Health Intelligence</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white md:text-4xl">Daily Health Calendar</h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-400 md:text-base">
+              Track steps, sleep, exercise, and Zone 2 training in a unified month view.
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-6 rounded-2xl border border-white/8 bg-white/4 px-6 py-4">
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="stat-value text-3xl font-bold text-teal-400 md:text-4xl">
+                {payload.weeklySummary.totalZone2Minutes}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Zone 2 min</span>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="stat-value text-3xl font-bold text-sky-400 md:text-4xl">
+                {payload.weeklySummary.averageSleepHours.toFixed(1)}h
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Avg sleep</span>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="stat-value text-3xl font-bold text-cyan-400 md:text-4xl">
+                {payload.weeklySummary.averageSteps.toLocaleString()}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Avg steps</span>
+            </div>
+          </div>
         </div>
       </div>
       <GoalsCoaching payload={goalsPayload} />
@@ -113,6 +135,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <RhrZone2Insights payload={rhrZone2Insights} />
       <ConditioningInsights payload={conditioningInsights} />
       <RecoverySignals payload={recoverySignals} />
+      <WeightWidget payload={weightInsights} />
       <LoadRecoveryChart payload={loadRecoveryPayload} />
       <AlertsFeed alerts={alerts} />
       <TrendCards payload={trendPayload} />

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const user = await getOrCreateSingleUser();
   const auth = await prisma.fitbitAuth.findUnique({ where: { userId: user.id } });
   if (!auth) {
-    return NextResponse.json({ error: "Fitbit not connected." }, { status: 401 });
+    return NextResponse.json({ error: "Google Health not connected." }, { status: 401 });
   }
 
   try {

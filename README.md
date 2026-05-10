@@ -4,11 +4,33 @@
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A modern, open-source Fitbit dashboard focused on **real fitness outcomes**: conditioning, recovery, sleep, heart-zone training, and trend-based coaching.
+A modern, open-source health intelligence dashboard powered by the **Google Health API v4** — focused on real fitness outcomes: conditioning, recovery, sleep, heart-zone training, body composition, and trend-based coaching.
 
 If you are building better health from data, this repo is for you.
 
 If this project is useful, please **star the repo** to help more people discover it.
+
+## Screenshots
+
+![Dashboard Hero](public/screenshots/dashboard-hero.png)
+
+> *Daily stats — Zone 2 minutes, avg sleep, avg steps — at a glance*
+
+![Sleep Insights](public/screenshots/sleep-insights.png)
+
+> *Sleep score, debt, consistency, stage breakdown, and smart flags*
+
+![Recovery Signals](public/screenshots/recovery-signals.png)
+
+> *VO2 Max, HRV, SpO2, breathing rate, skin temp — all from Google Health*
+
+![Weight & Body Composition](public/screenshots/weight-widget.png)
+
+> *90-day weight trend, body fat %, and BMI with sparkline chart*
+
+![Settings](public/screenshots/settings.png)
+
+> *Connect Google Health, set weekly goals, configure alert thresholds*
 
 ## Why fitPulse
 
@@ -23,13 +45,16 @@ Most dashboards stop at vanity metrics. fitPulse is designed for:
 ## Core Features
 
 - OAuth Google Health integration (Google Health API v4)
-- Calendar-based health dashboard
-- Sleep insights + derived sleep score breakdown
+- Premium dark UI — deep navy shell, glassmorphic hero cards, Apple Fitness-style design
+- Calendar-based health dashboard with month navigation
+- Sleep insights + derived sleep score breakdown (debt, consistency, stage trends)
 - Step insights + pacing + streaks
-- RHR + Zone 2 planning
-- Conditioning insights (active/sedentary balance, adherence)
-- Recovery signals (VO2, HRV, breathing rate, SpO2, temperature)
-- Alerts engine + preferences
+- RHR + Zone 2 planning and readiness scoring
+- Conditioning insights (active/sedentary balance, 80/20 intensity split)
+- Recovery signals (VO2 Max, HRV, SpO2, breathing rate, skin temperature)
+- **Weight & body composition** tracking (weight, body fat %, BMI — 90-day sparkline)
+- Alerts engine + configurable thresholds
+- Real-time webhook endpoint for Google Health data-change notifications
 - Auto-sync endpoint for cron workflows
 
 ## Tech Stack

@@ -27,7 +27,7 @@ export function ConditioningInsights({ payload }: Props) {
     <div className="soft-card interactive-card fade-up d-3 rounded-3xl p-5">
       <h2 className="text-xl font-semibold text-slate-900">Conditioning Insights</h2>
       <p className="mt-1 text-sm text-slate-600">Active load, sedentary balance, 80/20 intensity split, and adherence.</p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Fitbit API + derived coaching</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Source: Google Health API + derived coaching</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-4">
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">
@@ -39,7 +39,7 @@ export function ConditioningInsights({ payload }: Props) {
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">
           <p className="text-xs text-slate-500">Estimated Sedentary</p>
           <p className="mt-1 text-2xl font-semibold text-slate-900">{payload.weekly.sedentaryHours}h</p>
-          <p className="text-xs text-slate-600">Per day (Fitbit sedentary minutes)</p>
+          <p className="text-xs text-slate-600">Per day (sedentary minutes)</p>
         </div>
 
         <div className="soft-subcard interactive-subcard rounded-2xl p-3">

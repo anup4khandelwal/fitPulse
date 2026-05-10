@@ -26,7 +26,7 @@ export default function OpenGraphImage() {
       >
         <div style={{ fontSize: 28, letterSpacing: 1.5, textTransform: "uppercase", color: "#0f766e" }}>fitPulse</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.02 }}>Fitbit Health Dashboard</div>
+          <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.02 }}>Google Health Dashboard</div>
           <div style={{ fontSize: 34, color: "#334155" }}>Recovery, Sleep, Zone 2, and Coaching Insights</div>
         </div>
         <div style={{ fontSize: 28, color: "#0f766e" }}>github.com/anup4khandelwal/fitPulse</div>
