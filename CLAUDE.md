@@ -89,6 +89,7 @@ DEMO_MODE="false"
 SYNC_CRON_SECRET=          # protects POST /api/sync/auto
 AUTO_SYNC_DAYS="3"         # days back to sync in auto mode
 WEBHOOK_SECRET=            # optional, validates Google Health webhook calls
+ANTHROPIC_API_KEY=         # required for AI coaching summary (POST /api/coaching)
 ```
 
 ## MCP Server & CLI

@@ -30,6 +30,7 @@ import {
 import { buildDemoRecoverySignals, getRecoverySignals } from "@/lib/recovery-signals";
 import { buildDemoWeightInsights, getWeightInsights } from "@/lib/weight-insights";
 import { WeightWidget } from "@/components/weight-widget";
+import { CoachingSummary } from "@/components/coaching-summary";
 
 type HomeProps = {
   searchParams: Promise<{ month?: string }>;
@@ -136,6 +137,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <ConditioningInsights payload={conditioningInsights} />
       <RecoverySignals payload={recoverySignals} />
       <WeightWidget payload={weightInsights} />
+      <CoachingSummary />
       <LoadRecoveryChart payload={loadRecoveryPayload} />
       <AlertsFeed alerts={alerts} />
       <TrendCards payload={trendPayload} />
